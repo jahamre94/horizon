@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import Sidebar from '$lib/navigation/Sidebar.svelte';
+	import { updateAuthStores } from '$lib/api/auth';
 
 	let { children } = $props();
 
@@ -21,6 +22,12 @@
 	onMount(() => {
 		if (!isLoggedIn()) {
 			goto('/login');
+		} else {
+			// Initialize auth stores from localStorage
+			const payload = JSON.parse(localStorage.getItem('user_payload') || '{}');
+			if (payload) {
+				updateAuthStores(payload);
+			}
 		}
 	});
 </script>

@@ -1,39 +1,40 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { isGlobalAdmin, tenantList } from '$lib/stores/auth';
+	import { isGlobalAdmin, tenantList, selectedTenant } from '$lib/stores/auth';
 	import { writable } from 'svelte/store';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
 	import Modal from '$lib/Modal.svelte';
-
-	export const selectedTenant = writable<{ id: string; name: string; slug: string } | null>(null);
 
 	let showMobileNav = false;
 	let showTenantModal = false;
 
 	onMount(() => {
 		if (!browser) return;
-		const payloadStr = localStorage.getItem('user_payload');
-		if (payloadStr) {
-			try {
-				const payload = JSON.parse(payloadStr);
-				tenantList.set(payload.tenants);
-				isGlobalAdmin.set(payload.is_global_admin);
 
-				if (!localStorage.getItem('selected_tenant')) {
+		// Initialize selected tenant from localStorage if not already set
+		if (!localStorage.getItem('selected_tenant')) {
+			const payloadStr = localStorage.getItem('user_payload');
+			if (payloadStr) {
+				try {
+					const payload = JSON.parse(payloadStr);
 					const firstTenant = payload.tenants?.[0];
 					if (firstTenant) {
 						selectedTenant.set(firstTenant);
 						localStorage.setItem('selected_tenant', JSON.stringify(firstTenant));
 					}
-				} else {
-					const storedTenant = localStorage.getItem('selected_tenant');
-					if (storedTenant) {
-						selectedTenant.set(JSON.parse(storedTenant));
-					}
+				} catch (e) {
+					console.error('Failed to parse user payload');
 				}
-			} catch (e) {
-				console.error('Failed to parse user payload or tenant');
+			}
+		} else {
+			const storedTenant = localStorage.getItem('selected_tenant');
+			if (storedTenant) {
+				try {
+					selectedTenant.set(JSON.parse(storedTenant));
+				} catch (e) {
+					console.error('Failed to parse stored tenant');
+				}
 			}
 		}
 	});
@@ -148,7 +149,7 @@
 						<span class="font-medium">Observers</span>
 					</a>
 					<a
-						href="/tenant-admin"
+						href="/admin"
 						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 					>
 						<span class="text-blue-400">●</span>

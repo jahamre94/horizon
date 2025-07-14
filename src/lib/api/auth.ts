@@ -1,3 +1,11 @@
+import { isGlobalAdmin, tenantList } from '$lib/stores/auth';
+
+// Helper function to update auth stores from token payload
+export function updateAuthStores(payload: any) {
+	isGlobalAdmin.set(payload.is_global_admin || false);
+	tenantList.set(payload.tenants || []);
+}
+
 export async function loginUser(email: string, password: string): Promise<{ success: boolean; error?: string }> {
 	try {
 		const res = await fetch('/api/login', {
@@ -18,6 +26,9 @@ export async function loginUser(email: string, password: string): Promise<{ succ
 		// Parse token payload
 		const payload = JSON.parse(atob(token.split('.')[1]));
 		localStorage.setItem('user_payload', JSON.stringify(payload));
+
+		// Update auth stores
+		updateAuthStores(payload);
 
 		return { success: true };
 	} catch (err) {
@@ -61,6 +72,14 @@ export async function refreshTokens(): Promise<boolean> {
 	const data = await res.json();
 	localStorage.setItem('access_token', data.access_token);
 	localStorage.setItem('refresh_token', data.refresh_token);
+	
+	// Parse and store the new token payload
+	const payload = JSON.parse(atob(data.access_token.split('.')[1]));
+	localStorage.setItem('user_payload', JSON.stringify(payload));
+	
+	// Update auth stores
+	updateAuthStores(payload);
+	
 	return true;
 }
 

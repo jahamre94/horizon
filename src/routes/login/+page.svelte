@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { loginUser } from '$lib/api/auth';
-	import { isGlobalAdmin, tenantList } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
 
 	let email = '';
@@ -15,9 +14,6 @@
 			return;
 		}
 
-		const payload = JSON.parse(localStorage.getItem('user_payload') || '{}');
-		isGlobalAdmin.set(payload.is_global_admin || false);
-		tenantList.set(payload.tenants || []);
 		goto('/home');
 	}
 </script>
@@ -25,7 +21,7 @@
 <div class="bg-base-200 flex min-h-screen items-center justify-center px-4">
 	<div class="bg-base-100 border-base-300 w-full max-w-sm rounded-xl border p-6 shadow-2xl">
 		<div class="mb-6 text-center">
-			<h1 class="text-primary mb-2 text-2xl font-bold">CosmosWatcher</h1>
+			<img src="/logo.png" alt="CosmosWatcher" class="mx-auto mb-3 w-40" />
 			<p class="text-base-content/70 text-sm">Enter the Horizon Portal</p>
 		</div>
 
@@ -43,12 +39,17 @@
 			/>
 			<input
 				type="password"
-				placeholder="Access Key"
+				placeholder="Password"
 				bind:value={password}
 				class="input input-bordered bg-base-200 text-base-content placeholder-base-content/50 mb-4 w-full"
 				required
 			/>
 			<button type="submit" class="btn btn-primary w-full">Access Horizon</button>
 		</form>
+
+		<div class="mt-4 text-center">
+			<p class="text-base-content/70 mb-2 text-sm">Need access to the Horizon Portal?</p>
+			<a href="/signup" class="btn btn-outline btn-sm">Register New Account</a>
+		</div>
 	</div>
 </div>
