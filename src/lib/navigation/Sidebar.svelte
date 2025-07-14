@@ -91,75 +91,84 @@
 
 	<div class="drawer-side">
 		<label for="drawer-toggle" class="drawer-overlay"></label>
-		<aside class="bg-base-100 text-accent-content flex min-h-full w-64 flex-col shadow-2xl">
+		<aside
+			class="flex min-h-full w-64 flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100 shadow-2xl"
+		>
 			<!-- Logo section - Horizon Portal -->
-			<div class="border-accent-focus bg-base-100/90 border-b p-4">
+			<div class="p-6 pb-4">
 				<div class="text-center">
 					<h1 class="text-xl font-bold text-white">🌌 CosmosWatcher</h1>
-					<p class="text-accent-content/70 mt-1 text-xs">Horizon Portal</p>
+					<p class="mt-1 text-xs font-medium text-slate-300">Horizon Portal</p>
 				</div>
 			</div>
 
 			<!-- Tenant selection - Observer Context -->
-			<div class="border-accent-focus bg-base-100/95 border-b p-4">
-				<p class="text-accent-content/70 mb-2 text-xs">Observer Context</p>
+			<div class="px-6 pb-4">
+				<p class="mb-3 text-xs font-medium tracking-wide text-slate-400 uppercase">
+					Observer Context
+				</p>
 				<button
-					class="btn btn-sm btn-outline btn-accent-content w-full text-left"
+					class="w-full rounded-lg border border-slate-600 bg-slate-800/50 p-3 text-left text-slate-100 transition-colors hover:bg-slate-700/50"
 					on:click={() => (showTenantModal = true)}
 				>
 					{#if $selectedTenant}
 						<div class="flex-1 text-left">
 							<div class="font-medium">{$selectedTenant.name}</div>
-							<div class="text-xs opacity-60">{$selectedTenant.slug}</div>
+							<div class="text-xs text-slate-400">{$selectedTenant.slug}</div>
 						</div>
 					{:else}
-						Select Observer
+						<span class="text-slate-300">Select Observer</span>
 					{/if}
 				</button>
 			</div>
 
 			<!-- Navigation - System Access -->
-			<div class="flex-1 p-4">
-				<p class="text-accent-content/70 mb-3 text-xs">System Access</p>
-				<ul class="menu space-y-1 p-0">
-					<li>
-						<a href="/home" class="text-accent-content hover:bg-accent-focus rounded-md px-3 py-2">
-							<span class="text-primary">●</span> Dashboard
-						</a>
-					</li>
-					<li>
-						<a
-							href="/agents"
-							class="text-accent-content hover:bg-accent-focus rounded-md px-3 py-2"
-						>
-							<span class="text-primary">●</span> Observers
-						</a>
-					</li>
-					<li>
-						<a
-							href="/tenant-admin"
-							class="text-accent-content hover:bg-accent-focus rounded-md px-3 py-2"
-						>
-							<span class="text-primary">●</span> Admin
-						</a>
-					</li>
+			<div class="flex-1 px-6">
+				<p class="mb-4 text-xs font-medium tracking-wide text-slate-400 uppercase">System Access</p>
+				<nav class="space-y-2">
+					<a
+						href="/home"
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
+					>
+						<span class="text-blue-400">●</span>
+						<span class="font-medium">Dashboard</span>
+					</a>
+					<a
+						href="/agents"
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
+					>
+						<span class="text-blue-400">●</span>
+						<span class="font-medium">Observers</span>
+					</a>
+					<a
+						href="/tenant-admin"
+						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
+					>
+						<span class="text-blue-400">●</span>
+						<span class="font-medium">Admin</span>
+					</a>
 					{#if $isGlobalAdmin}
-						<li>
-							<a
-								href="/global-admin"
-								class="text-accent-content hover:bg-accent-focus rounded-md px-3 py-2"
-							>
-								<span class="text-warning">●</span> Singularity
-							</a>
-						</li>
+						<a
+							href="/global-admin"
+							class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
+						>
+							<span class="text-amber-400">●</span>
+							<span class="font-medium">Singularity</span>
+						</a>
 					{/if}
-				</ul>
+				</nav>
 			</div>
 
 			<!-- Logout button -->
-			<div class="border-accent-focus border-t p-4">
-				<button class="btn btn-outline btn-accent-content w-full" on:click={logout}>
-					<span class="text-error">●</span> Logout
+			<div class="p-6 pt-4">
+				<button
+					class="w-full rounded-lg border border-red-700/30 bg-red-900/20 p-3 text-red-300 transition-colors hover:bg-red-900/30 hover:text-red-200"
+					on:click={logout}
+				>
+					<span class="flex items-center justify-center gap-2">
+						<span class="text-red-400">●</span>
+						<span class="font-medium">Logout</span>
+					</span>
 				</button>
 			</div>
 		</aside>
@@ -169,30 +178,33 @@
 <!-- Tenant Modal -->
 {#if showTenantModal}
 	<div class="modal modal-open">
-		<div class="modal-box bg-base-100 border-base-300 border">
-			<h3 class="text-primary mb-2 text-lg font-bold">Observer Selection</h3>
-			<p class="text-base-content/70 mb-4 text-sm">Choose your observation context</p>
-			<div class="space-y-2">
+		<div class="modal-box border border-slate-700 bg-slate-800 shadow-2xl">
+			<h3 class="mb-2 text-lg font-bold text-white">Observer Selection</h3>
+			<p class="mb-6 text-sm text-slate-300">Choose your observation context</p>
+			<div class="space-y-3">
 				{#each $tenantList as tenant}
 					<button
-						class="btn btn-outline bg-base-200 hover:bg-base-300 w-full justify-start text-left"
+						class="w-full rounded-lg border border-slate-600 bg-slate-700/50 p-4 text-left text-slate-100 transition-colors hover:bg-slate-600/50"
 						on:click={() => switchTenant(tenant)}
-						class:btn-primary={$selectedTenant?.id === tenant.id}
-						class:bg-primary={$selectedTenant?.id === tenant.id}
-						class:text-primary-content={$selectedTenant?.id === tenant.id}
+						class:bg-blue-600={$selectedTenant?.id === tenant.id}
+						class:border-blue-500={$selectedTenant?.id === tenant.id}
+						class:text-white={$selectedTenant?.id === tenant.id}
 					>
 						<div>
 							<div class="flex items-center gap-2 font-semibold">
-								<span class="text-accent text-xs">●</span>
+								<span class="text-xs text-blue-400">●</span>
 								{tenant.name}
 							</div>
-							<div class="text-sm opacity-70">{tenant.slug} • {tenant.role}</div>
+							<div class="mt-1 text-sm text-slate-400">{tenant.slug} • {tenant.role}</div>
 						</div>
 					</button>
 				{/each}
 			</div>
 			<div class="modal-action">
-				<button class="btn btn-outline" on:click={() => (showTenantModal = false)}>Cancel</button>
+				<button
+					class="btn btn-outline border-slate-600 text-slate-300 hover:bg-slate-700"
+					on:click={() => (showTenantModal = false)}>Cancel</button
+				>
 			</div>
 		</div>
 	</div>
