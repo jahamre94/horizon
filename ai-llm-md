@@ -1,85 +1,90 @@
-# CosmosWatcher Backend API
+# CosmosWatcher – Development Context Summary
 
-This document describes the backend API for the **CosmosWatcher** suite — specifically the `Singularity` backend. It is intended for frontend developers integrating with the API, including the `Horizon` frontend portal.
+**CosmosWatcher** is a multi-tenant Linux system observation and administration suite, consisting of three coordinated components:
 
----
-
-## 🧩 Authentication
-
-### POST `/api/login`
-
-Authenticate a user and receive a JWT.
-
-**Request Body:**
-
-```json
-{
-  "email": "admin@acme.local",
-  "password": "yourpassword"
-}
-```
-
-**Success Response:**
-
-```json
-{
-  "token": "<JWT>"
-}
-```
-
-The JWT includes:
-
-* `sub`: User ID (UUID)
-* `email`: User email
-* `is_global_admin`: `true` or `false`
-* `tenants`: Array of tenant objects:
-
-```json
-[
-  {
-    "id": "tenant-uuid",
-    "slug": "acme",
-    "name": "Acme Corporation",
-    "role": "admin"
-  }
-]
-```
-
-**JWT Notes:**
-
-* Include the token in the `Authorization: Bearer <token>` header for protected endpoints.
-* `type` claim = `"access"`
-* `exp` claim = expiry timestamp (15 mins default)
+* **Observer**: Lightweight agent deployed on systems to monitor and report data
+* **Singularity**: Backend service written in Go (Gorilla Mux + PostgreSQL)
+* **Horizon**: Responsive frontend built with SvelteKit 5 + TailwindCSS + DaisyUI
 
 ---
 
-## 🔐 Protected Endpoints (Coming Soon)
+## 🔧 Backend (Singularity)
 
-All future endpoints will require Bearer token authentication. Example headers:
+* **Authentication**: JWT-based using `access_token`
 
-```http
-Authorization: Bearer <JWT>
-```
+  * Tokens include `sub`, `email`, `is_global_admin`, and `tenants[]` (id, name, slug, role)
+  * Middleware extracts JWT from `Authorization` header and tenant from `X-Tenant-ID`
+  * Context keys (`UserKey`, `TenantKey`) used across the Go app
 
-## 🗂 Planned Endpoint Categories
+* **Users & Tenants**:
 
-* `/api/me` – return current user info (based on token)
-* `/api/tenants` – list/select tenant info
-* `/api/nodes` – register and manage Observers
-* `/api/telemetry` – ingest data from agents
-* `/api/users` – user/tenant admin features
+  * Users can belong to multiple tenants via `tenant_users` table
+  * Global admin (`is_global_admin`) flag gives access to platform-wide routes
 
----
+* **Routing**:
 
-## 🌐 Deployment Modes
+  * Uses Gorilla Mux router
+  * `/api` routes protected with middleware, e.g., `/api/login`, `/api/info` are public
+  * Serves the Svelte frontend via reverse proxy in dev mode
 
-This API supports both:
+* **Database**:
 
-* **Single-tenant self-hosted** use (frontend embedded)
-* **Multitenant cloud-hosted** mode (frontend separate)
-
-The exact same endpoints are used in both cases.
+  * PostgreSQL
+  * Managed with Go Migrate
 
 ---
 
-Continue updating this file as more endpoints are added.
+## 🎨 Frontend (Horizon)
+
+* **Tech Stack**:
+
+  * SvelteKit 5 (routing, layout, +page.ts/+.svelte)
+  * TailwindCSS
+  * DaisyUI with custom OKLCH-based space-themed design
+
+* **Theme Philosophy**:
+
+  * **Observer** = minimal, silent, observant
+  * **Singularity** = central, powerful, gravitational
+  * **Horizon** = visible, insightful, interactive
+
+* **Sidebar Navigation**:
+
+  * Logo: `🌌 CosmosWatcher` + Horizon Portal label
+  * Nav links:
+
+    * `/home` – Dashboard
+    * `/agents` – Observers
+    * `/tenant-admin` – Tenant-level admin
+    * `/global-admin` – Global admin panel (only visible if `is_global_admin` is true)
+  * Responsive drawer UI
+  * Logout clears localStorage and redirects to `/login`
+
+* **Tenant Management**:
+
+  * Tenant list loaded from JWT payload
+  * Auto-selects first tenant if none stored
+  * `selected_tenant` saved in localStorage and in a writable Svelte store
+  * Tenant switcher modal allows changing context
+
+* **Authentication Handling**:
+
+  * Login page at `/login`
+  * Token and user data (`access_token`, `user_payload`, `selected_tenant`) stored in `localStorage`
+  * `isLoggedIn()` checks token presence and expiration
+  * Layout guard in `(app)` verifies login before rendering
+
+---
+
+## ✅ Status
+
+* Login and multi-tenant JWT auth working end-to-end
+* Sidebar and navigation functional and styled
+* Theme is dark-space optimized with high contrast and branded sections
+* Tenant context switching operational
+
+---
+
+This file serves as a session primer or onboarding doc for continued development, frontend/backend coordination, and UI/UX iteration.
+
+    

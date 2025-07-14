@@ -85,7 +85,7 @@
 				</label>
 			</div>
 			<div class="flex-1">
-				<h1 class="text-primary text-lg font-bold">CosmosWatcher</h1>
+				<h1 class="text-primary-content text-lg font-bold">COSMOS WATHCER</h1>
 			</div>
 		</div>
 
@@ -99,13 +99,16 @@
 			class="flex min-h-full w-64 flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100 shadow-2xl"
 		>
 			<!-- Logo section - Horizon Portal -->
+			<!-- Logo section - Horizon Portal -->
 			<div class="p-6 pb-4">
-				<div class="text-center">
-					<h1 class="text-xl font-bold text-white">🌌 CosmosWatcher</h1>
-					<p class="mt-1 text-xs font-medium text-slate-300">Horizon Portal</p>
+				<div class="flex items-center gap-3">
+					<img src="/icon.png" alt="CosmosWatcher Logo" class="h-12 w-12" />
+					<div>
+						<h1 class="text-md font-bold text-nowrap text-white">Cosmos Watcher</h1>
+						<p class="mt-1 text-xs font-medium text-slate-300">Horizon Portal</p>
+					</div>
 				</div>
 			</div>
-
 			<!-- Tenant selection - Observer Context -->
 			<div class="px-6 pb-4">
 				<p class="mb-3 text-xs font-medium tracking-wide text-slate-400 uppercase">
