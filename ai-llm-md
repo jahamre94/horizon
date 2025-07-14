@@ -2,9 +2,9 @@
 
 **CosmosWatcher** is a multi-tenant Linux system observation and administration suite, consisting of three coordinated components:
 
-* **Observer**: Lightweight agent deployed on systems to monitor and report data
-* **Singularity**: Backend service written in Go (Gorilla Mux + PostgreSQL)
-* **Horizon**: Responsive frontend built with SvelteKit 5 + TailwindCSS + DaisyUI
+* **Observer**: Lightweight agent deployed on systems to monitor and report data  
+* **Singularity**: Backend service written in Go (Gorilla Mux + PostgreSQL)  
+* **Horizon**: Responsive frontend built with SvelteKit 5 + TailwindCSS + DaisyUI  
 
 ---
 
@@ -31,6 +31,50 @@
 
   * PostgreSQL
   * Managed with Go Migrate
+  * Accessed via a `database` package with manual SQL (`dbs.Query`, `dbs.QueryRow`)
+  * Shared types in the `types` package (e.g., `types.TenantResponse`)
+  * Tables:
+  
+    ```
+    tenant (
+      id UUID PRIMARY KEY,
+      slug TEXT UNIQUE,
+      name TEXT,
+      is_active BOOLEAN DEFAULT true,
+      created_at TIMESTAMPTZ DEFAULT now()
+    )
+
+    users (
+      id UUID PRIMARY KEY,
+      email TEXT UNIQUE,
+      hashed_password TEXT,
+      is_verified BOOLEAN,
+      is_global_admin BOOLEAN,
+      created_at TIMESTAMPTZ,
+      last_login_at TIMESTAMPTZ
+    )
+
+    tenant_users (
+      id UUID PRIMARY KEY,
+      tenant_id UUID REFERENCES tenant(id) ON DELETE CASCADE,
+      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+      role TEXT DEFAULT 'user',
+      joined_at TIMESTAMPTZ DEFAULT now(),
+      UNIQUE (tenant_id, user_id)
+    )
+    ```
+
+  * Sample response type:  
+    ```go
+    type TenantResponse struct {
+      ID         string    `json:"id"`
+      Slug       string    `json:"slug"`
+      Name       string    `json:"name"`
+      IsActive   bool      `json:"is_active"`
+      CreatedAt  time.Time `json:"created_at"`
+      UserCount  int       `json:"user_count"`
+    }
+    ```
 
 ---
 
@@ -52,7 +96,6 @@
 
   * Logo: `🌌 CosmosWatcher` + Horizon Portal label
   * Nav links:
-
     * `/home` – Dashboard
     * `/agents` – Observers
     * `/tenant-admin` – Tenant-level admin
@@ -86,5 +129,3 @@
 ---
 
 This file serves as a session primer or onboarding doc for continued development, frontend/backend coordination, and UI/UX iteration.
-
-    

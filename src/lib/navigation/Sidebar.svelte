@@ -85,7 +85,7 @@
 				</label>
 			</div>
 			<div class="flex-1">
-				<h1 class="text-primary-content text-lg font-bold">COSMOS WATHCER</h1>
+				<h1 class="text-primary-content text-lg font-bold">COSMOS WATCHER</h1>
 			</div>
 		</div>
 
@@ -156,7 +156,7 @@
 					</a>
 					{#if $isGlobalAdmin}
 						<a
-							href="/global-admin"
+							href="/singularity"
 							class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 						>
 							<span class="text-amber-400">●</span>
