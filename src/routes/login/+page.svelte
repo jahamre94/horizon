@@ -23,29 +23,32 @@
 </script>
 
 <div class="bg-base-200 flex min-h-screen items-center justify-center px-4">
-	<div class="bg-base-100 border-base-300 w-full max-w-sm rounded-xl border p-6 shadow-lg">
-		<h1 class="text-primary mb-4 text-xl font-bold">Sign in to CosmosWatcher</h1>
+	<div class="bg-base-100 border-base-300 w-full max-w-sm rounded-xl border p-6 shadow-2xl">
+		<div class="mb-6 text-center">
+			<h1 class="text-primary mb-2 text-2xl font-bold">CosmosWatcher</h1>
+			<p class="text-base-content/70 text-sm">Enter the Horizon Portal</p>
+		</div>
 
 		{#if error}
-			<div class="alert alert-error mb-3 text-sm">{error}</div>
+			<div class="alert alert-error mb-4 text-sm">{error}</div>
 		{/if}
 
 		<form on:submit|preventDefault={handleLogin}>
 			<input
 				type="email"
-				placeholder="Email"
+				placeholder="Observer Email"
 				bind:value={email}
-				class="input input-bordered mb-3 w-full"
+				class="input input-bordered bg-base-200 text-base-content placeholder-base-content/50 mb-3 w-full"
 				required
 			/>
 			<input
 				type="password"
-				placeholder="Password"
+				placeholder="Access Key"
 				bind:value={password}
-				class="input input-bordered mb-4 w-full"
+				class="input input-bordered bg-base-200 text-base-content placeholder-base-content/50 mb-4 w-full"
 				required
 			/>
-			<button type="submit" class="btn btn-primary w-full">Login</button>
+			<button type="submit" class="btn btn-primary w-full">Access Horizon</button>
 		</form>
 	</div>
 </div>

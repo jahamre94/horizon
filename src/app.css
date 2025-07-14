@@ -5,37 +5,44 @@
   name: "theme-cosmoswatcher";
   default: true; /* set as default */
   
-  --color-primary: oklch(35% 0.08 240);            /* Deep Space Blue - lighter */
-  --color-primary-content: oklch(100% 0 0);        /* White */
+  /* 🌌 CosmosWatcher Theme Philosophy:
+   * Observer (agent): minimal, silent, observant
+   * Singularity (backend): central, powerful, gravitational  
+   * Horizon (portal): visible, insightful, interactive
+   * Optimized for space-themed dashboards with balanced contrast
+   */
+  
+  --color-primary: oklch(38% 0.12 240);            /* Deep Space Blue - Singularity power */
+  --color-primary-content: oklch(100% 0 0);        /* Pure white - clarity */
 
-  --color-secondary: oklch(92% 0.02 240);          /* Light Gray with subtle blue tint */
-  --color-secondary-content: oklch(25% 0.02 240);  /* Dark blue-gray */
+  --color-secondary: oklch(45% 0.06 240);          /* Space gray - Observer silence */
+  --color-secondary-content: oklch(95% 0.02 240);  /* Light blue-gray text */
 
-  --color-accent: oklch(65% 0.20 195);             /* Electric Teal - slightly muted */
-  --color-accent-content: oklch(100% 0 0);         /* White */
+  --color-accent: oklch(72% 0.15 40);              /* Warm Amber - complementary to blue */
+  --color-accent-content: oklch(100% 0 0);         /* White text */
 
-  --color-neutral: oklch(20% 0.02 240);            /* Dark neutral */
-  --color-neutral-content: oklch(95% 0.01 240);    /* Light text */
+  --color-neutral: oklch(32% 0.04 240);            /* Deep space neutral */
+  --color-neutral-content: oklch(88% 0.02 240);    /* Light neutral text */
 
-  --color-base-100: oklch(98% 0.005 240);          /* Very light background */
-  --color-base-200: oklch(94% 0.01 240);           /* Light gray background */
-  --color-base-300: oklch(88% 0.015 240);          /* Medium gray */
-  --color-base-content: oklch(20% 0.02 240);       /* Dark text */
+  --color-base-100: oklch(25% 0.02 240);           /* Dark space background - not black */
+  --color-base-200: oklch(32% 0.03 240);           /* Medium space background */
+  --color-base-300: oklch(40% 0.04 240);           /* Lighter space for borders */
+  --color-base-content: oklch(92% 0.02 240);       /* Light text for readability */
 
-  --color-info: oklch(70% 0.26 255);               /* Cool blue info */
+  --color-info: oklch(68% 0.18 230);               /* System info blue */
   --color-info-content: oklch(100% 0 0);           /* White */
 
-  --color-success: oklch(68% 0.19 140);            /* Aurora Green */
+  --color-success: oklch(68% 0.16 140);            /* Aurora Green - system success */
   --color-success-content: oklch(100% 0 0);        /* White */
 
-  --color-warning: oklch(75% 0.15 80);             /* Warm orange */
-  --color-warning-content: oklch(100% 0 0);        /* White */
+  --color-warning: oklch(78% 0.14 80);             /* Stellar orange - attention */
+  --color-warning-content: oklch(15% 0.02 80);     /* Dark text */
 
-  --color-error: oklch(58% 0.26 30);               /* Supernova Red */
+  --color-error: oklch(62% 0.23 30);               /* Supernova Red - critical */
   --color-error-content: oklch(100% 0 0);          /* White */
 }
 
 @theme {
-  --color-base-400: oklch(94.91% 0.000 0);  
-  --color-base-500: oklch(0.9702 0 0); 
+  --color-base-400: oklch(48% 0.05 240);  /* Mid-space shade for subtle elements */
+  --color-base-500: oklch(55% 0.06 240);  /* Lighter space for interactive elements */
 }

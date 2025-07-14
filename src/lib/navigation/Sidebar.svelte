@@ -3,6 +3,7 @@
 	import { isGlobalAdmin, tenantList } from '$lib/stores/auth';
 	import { writable } from 'svelte/store';
 	import { browser } from '$app/environment';
+	import { goto } from '$app/navigation';
 
 	export const selectedTenant = writable<{ id: string; name: string; slug: string } | null>(null);
 
@@ -37,6 +38,22 @@
 		selectedTenant.set(tenant);
 		localStorage.setItem('selected_tenant', JSON.stringify(tenant));
 		showTenantModal = false;
+	}
+
+	function logout() {
+		// Remove tokens and user data from localStorage
+		localStorage.removeItem('user_payload');
+		localStorage.removeItem('selected_tenant');
+		localStorage.removeItem('access_token');
+		localStorage.removeItem('refresh_token');
+
+		// Clear stores
+		tenantList.set([]);
+		isGlobalAdmin.set(false);
+		selectedTenant.set(null);
+
+		// Navigate to login
+		goto('/login');
 	}
 </script>
 
@@ -74,50 +91,76 @@
 
 	<div class="drawer-side">
 		<label for="drawer-toggle" class="drawer-overlay"></label>
-		<aside class="bg-primary text-primary-content flex min-h-full w-64 flex-col shadow-lg">
-			<!-- Logo section -->
-			<div class="border-primary-focus border-b p-4">
-				<h1 class="text-xl font-bold text-white">CosmosWatcher</h1>
+		<aside class="bg-base-100 text-accent-content flex min-h-full w-64 flex-col shadow-2xl">
+			<!-- Logo section - Horizon Portal -->
+			<div class="border-accent-focus bg-base-100/90 border-b p-4">
+				<div class="text-center">
+					<h1 class="text-xl font-bold text-white">🌌 CosmosWatcher</h1>
+					<p class="text-accent-content/70 mt-1 text-xs">Horizon Portal</p>
+				</div>
 			</div>
 
-			<!-- Tenant selection -->
-			<div class="border-primary-focus border-b p-4">
+			<!-- Tenant selection - Observer Context -->
+			<div class="border-accent-focus bg-base-100/95 border-b p-4">
+				<p class="text-accent-content/70 mb-2 text-xs">Observer Context</p>
 				<button
-					class="btn btn-sm btn-outline btn-primary-content w-full"
+					class="btn btn-sm btn-outline btn-accent-content w-full text-left"
 					on:click={() => (showTenantModal = true)}
 				>
 					{#if $selectedTenant}
-						{$selectedTenant.name}
+						<div class="flex-1 text-left">
+							<div class="font-medium">{$selectedTenant.name}</div>
+							<div class="text-xs opacity-60">{$selectedTenant.slug}</div>
+						</div>
 					{:else}
-						Select Tenant
+						Select Observer
 					{/if}
 				</button>
 			</div>
 
-			<!-- Navigation -->
+			<!-- Navigation - System Access -->
 			<div class="flex-1 p-4">
-				<h2 class="mb-4 text-lg font-semibold text-white">Navigation</h2>
-				<ul class="menu p-0">
+				<p class="text-accent-content/70 mb-3 text-xs">System Access</p>
+				<ul class="menu space-y-1 p-0">
 					<li>
-						<a href="/home" class="text-primary-content hover:bg-primary-focus rounded">Dashboard</a
-						>
+						<a href="/home" class="text-accent-content hover:bg-accent-focus rounded-md px-3 py-2">
+							<span class="text-primary">●</span> Dashboard
+						</a>
 					</li>
 					<li>
-						<a href="/agents" class="text-primary-content hover:bg-primary-focus rounded">Agents</a>
+						<a
+							href="/agents"
+							class="text-accent-content hover:bg-accent-focus rounded-md px-3 py-2"
+						>
+							<span class="text-primary">●</span> Observers
+						</a>
 					</li>
 					<li>
-						<a href="/tenant-admin" class="text-primary-content hover:bg-primary-focus rounded"
-							>Admin</a
+						<a
+							href="/tenant-admin"
+							class="text-accent-content hover:bg-accent-focus rounded-md px-3 py-2"
 						>
+							<span class="text-primary">●</span> Admin
+						</a>
 					</li>
 					{#if $isGlobalAdmin}
 						<li>
-							<a href="/global-admin" class="text-primary-content hover:bg-primary-focus rounded"
-								>Cosmos Admin</a
+							<a
+								href="/global-admin"
+								class="text-accent-content hover:bg-accent-focus rounded-md px-3 py-2"
 							>
+								<span class="text-warning">●</span> Singularity
+							</a>
 						</li>
 					{/if}
 				</ul>
+			</div>
+
+			<!-- Logout button -->
+			<div class="border-accent-focus border-t p-4">
+				<button class="btn btn-outline btn-accent-content w-full" on:click={logout}>
+					<span class="text-error">●</span> Logout
+				</button>
 			</div>
 		</aside>
 	</div>
@@ -126,17 +169,23 @@
 <!-- Tenant Modal -->
 {#if showTenantModal}
 	<div class="modal modal-open">
-		<div class="modal-box bg-base-100">
-			<h3 class="text-primary mb-4 text-lg font-bold">Select Tenant</h3>
+		<div class="modal-box bg-base-100 border-base-300 border">
+			<h3 class="text-primary mb-2 text-lg font-bold">Observer Selection</h3>
+			<p class="text-base-content/70 mb-4 text-sm">Choose your observation context</p>
 			<div class="space-y-2">
 				{#each $tenantList as tenant}
 					<button
-						class="btn btn-outline w-full justify-start text-left"
+						class="btn btn-outline bg-base-200 hover:bg-base-300 w-full justify-start text-left"
 						on:click={() => switchTenant(tenant)}
 						class:btn-primary={$selectedTenant?.id === tenant.id}
+						class:bg-primary={$selectedTenant?.id === tenant.id}
+						class:text-primary-content={$selectedTenant?.id === tenant.id}
 					>
 						<div>
-							<div class="font-semibold">{tenant.name}</div>
+							<div class="flex items-center gap-2 font-semibold">
+								<span class="text-accent text-xs">●</span>
+								{tenant.name}
+							</div>
 							<div class="text-sm opacity-70">{tenant.slug} • {tenant.role}</div>
 						</div>
 					</button>
