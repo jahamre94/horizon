@@ -1,0 +1,85 @@
+# CosmosWatcher Backend API
+
+This document describes the backend API for the **CosmosWatcher** suite — specifically the `Singularity` backend. It is intended for frontend developers integrating with the API, including the `Horizon` frontend portal.
+
+---
+
+## 🧩 Authentication
+
+### POST `/api/login`
+
+Authenticate a user and receive a JWT.
+
+**Request Body:**
+
+```json
+{
+  "email": "admin@acme.local",
+  "password": "yourpassword"
+}
+```
+
+**Success Response:**
+
+```json
+{
+  "token": "<JWT>"
+}
+```
+
+The JWT includes:
+
+* `sub`: User ID (UUID)
+* `email`: User email
+* `is_global_admin`: `true` or `false`
+* `tenants`: Array of tenant objects:
+
+```json
+[
+  {
+    "id": "tenant-uuid",
+    "slug": "acme",
+    "name": "Acme Corporation",
+    "role": "admin"
+  }
+]
+```
+
+**JWT Notes:**
+
+* Include the token in the `Authorization: Bearer <token>` header for protected endpoints.
+* `type` claim = `"access"`
+* `exp` claim = expiry timestamp (15 mins default)
+
+---
+
+## 🔐 Protected Endpoints (Coming Soon)
+
+All future endpoints will require Bearer token authentication. Example headers:
+
+```http
+Authorization: Bearer <JWT>
+```
+
+## 🗂 Planned Endpoint Categories
+
+* `/api/me` – return current user info (based on token)
+* `/api/tenants` – list/select tenant info
+* `/api/nodes` – register and manage Observers
+* `/api/telemetry` – ingest data from agents
+* `/api/users` – user/tenant admin features
+
+---
+
+## 🌐 Deployment Modes
+
+This API supports both:
+
+* **Single-tenant self-hosted** use (frontend embedded)
+* **Multitenant cloud-hosted** mode (frontend separate)
+
+The exact same endpoints are used in both cases.
+
+---
+
+Continue updating this file as more endpoints are added.
