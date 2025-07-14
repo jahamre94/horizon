@@ -25,7 +25,7 @@
   --color-neutral-content: oklch(88% 0.02 240);    /* Light neutral text */
 
   --color-base-100: oklch(25% 0.02 240);           /* Dark space background - not black */
-  --color-base-200: oklch(32% 0.03 240);           /* Medium space background */
+  --color-base-200: oklch(21% 0.003 0);      /* Medium space background */
   --color-base-300: oklch(40% 0.04 240);           /* Lighter space for borders */
   --color-base-content: oklch(92% 0.02 240);       /* Light text for readability */
 

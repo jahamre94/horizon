@@ -4,6 +4,7 @@
 	import { writable } from 'svelte/store';
 	import { browser } from '$app/environment';
 	import { goto } from '$app/navigation';
+	import Modal from '$lib/Modal.svelte';
 
 	export const selectedTenant = writable<{ id: string; name: string; slug: string } | null>(null);
 
@@ -26,7 +27,10 @@
 						localStorage.setItem('selected_tenant', JSON.stringify(firstTenant));
 					}
 				} else {
-					selectedTenant.set(JSON.parse(localStorage.getItem('selected_tenant')));
+					const storedTenant = localStorage.getItem('selected_tenant');
+					if (storedTenant) {
+						selectedTenant.set(JSON.parse(storedTenant));
+					}
 				}
 			} catch (e) {
 				console.error('Failed to parse user payload or tenant');
@@ -34,7 +38,7 @@
 		}
 	});
 
-	function switchTenant(tenant) {
+	function switchTenant(tenant: { id: string; name: string; slug: string }) {
 		selectedTenant.set(tenant);
 		localStorage.setItem('selected_tenant', JSON.stringify(tenant));
 		showTenantModal = false;
@@ -176,39 +180,34 @@
 </div>
 
 <!-- Tenant Modal -->
-{#if showTenantModal}
-	<div class="modal modal-open">
-		<div class="modal-box border border-slate-700 bg-slate-800 shadow-2xl">
-			<h3 class="mb-2 text-lg font-bold text-white">Observer Selection</h3>
-			<p class="mb-6 text-sm text-slate-300">Choose your observation context</p>
-			<div class="space-y-3">
-				{#each $tenantList as tenant}
-					<button
-						class="w-full rounded-lg border border-slate-600 bg-slate-700/50 p-4 text-left text-slate-100 transition-colors hover:bg-slate-600/50"
-						on:click={() => switchTenant(tenant)}
-						class:bg-blue-600={$selectedTenant?.id === tenant.id}
-						class:border-blue-500={$selectedTenant?.id === tenant.id}
-						class:text-white={$selectedTenant?.id === tenant.id}
-					>
-						<div>
-							<div class="flex items-center gap-2 font-semibold">
-								<span class="text-xs text-blue-400">●</span>
-								{tenant.name}
-							</div>
-							<div class="mt-1 text-sm text-slate-400">{tenant.slug} • {tenant.role}</div>
-						</div>
-					</button>
-				{/each}
-			</div>
-			<div class="modal-action">
-				<button
-					class="btn btn-outline border-slate-600 text-slate-300 hover:bg-slate-700"
-					on:click={() => (showTenantModal = false)}>Cancel</button
-				>
-			</div>
-		</div>
+<Modal visible={showTenantModal} header="Observer Selection">
+	<p class="mb-6 text-sm text-slate-300">Choose your observation context</p>
+	<div class="space-y-3">
+		{#each $tenantList as tenant}
+			<button
+				class="w-full rounded-lg border border-slate-600 bg-slate-700/50 p-4 text-left text-slate-100 transition-colors hover:bg-slate-600/50"
+				on:click={() => switchTenant(tenant)}
+				class:bg-blue-600={$selectedTenant?.id === tenant.id}
+				class:border-blue-500={$selectedTenant?.id === tenant.id}
+				class:text-white={$selectedTenant?.id === tenant.id}
+			>
+				<div>
+					<div class="flex items-center gap-2 font-semibold">
+						<span class="text-xs text-blue-400">●</span>
+						{tenant.name}
+					</div>
+					<div class="mt-1 text-sm text-slate-400">{tenant.slug} • {tenant.role}</div>
+				</div>
+			</button>
+		{/each}
 	</div>
-{/if}
+	<div class="modal-action">
+		<button
+			class="btn btn-outline border-slate-600 text-slate-300 hover:bg-slate-700"
+			on:click={() => (showTenantModal = false)}>Cancel</button
+		>
+	</div>
+</Modal>
 
 <style>
 	/* Optional: hide scrollbar for sidebar */
