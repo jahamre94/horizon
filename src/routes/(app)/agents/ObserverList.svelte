@@ -17,14 +17,17 @@
 	let loading = true;
 	let error: string | null = null;
 
-	onMount(async () => {
-		await fetchObservers();
-	});
-
 	// Re-fetch observers when tenant changes
-	$: if ($selectedTenant) {
+	let initialized = false;
+
+	$: if ($selectedTenant && initialized) {
 		fetchObservers();
 	}
+
+	onMount(async () => {
+		initialized = true;
+		await fetchObservers();
+	});
 
 	async function fetchObservers() {
 		loading = true;
@@ -178,9 +181,15 @@
 								<td>{formatInterval(observer.interval)}</td>
 								<td>
 									{#if Object.keys(observer.tags).length > 0}
-										<div class="flex flex-wrap gap-1">
+										<div class="flex flex-wrap gap-1.5">
 											{#each Object.entries(observer.tags) as [key, value]}
-												<span class="badge badge-ghost badge-sm">{key}={value}</span>
+												<span
+													class="bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium"
+												>
+													<span class="text-primary/80">{key}</span>
+													<span class="text-primary/60">=</span>
+													<span class="text-primary font-semibold">{value}</span>
+												</span>
 											{/each}
 										</div>
 									{:else}
@@ -237,9 +246,15 @@
 						{#if Object.keys(observer.tags).length > 0}
 							<div class="mt-2">
 								<span class="text-base-content/70 text-sm">Tags:</span>
-								<div class="mt-1 flex flex-wrap gap-1">
+								<div class="mt-1.5 flex flex-wrap gap-1.5">
 									{#each Object.entries(observer.tags) as [key, value]}
-										<span class="badge badge-ghost badge-sm">{key}={value}</span>
+										<span
+											class="bg-primary/10 text-primary border-primary/20 inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs font-medium"
+										>
+											<span class="text-primary/80">{key}</span>
+											<span class="text-primary/60">=</span>
+											<span class="text-primary font-semibold">{value}</span>
+										</span>
 									{/each}
 								</div>
 							</div>
