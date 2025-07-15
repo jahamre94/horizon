@@ -34,6 +34,8 @@ func UpdateObserverHeartbeat(observerID string, tenantID uuid.UUID, seenAt time.
 }
 ```
 
+---
+
 ## 🚀 Observer: Agent Design
 
 ### Core Responsibilities
@@ -74,11 +76,13 @@ observer_id: 123e...
 tenant_id: 456a...
 ```
 
+---
+
 ## 🔐 Bootstrap and Authentication
 
 ### Bootstrap Flow
 
-Observer POSTs to /api/observer/bootstrap with Authorization: Bearer \<bootstrap\_token>
+Observer POSTs to `/api/observer/bootstrap` with Authorization: `Bearer <bootstrap_token>`
 
 Server returns:
 
@@ -90,21 +94,23 @@ Server returns:
 }
 ```
 
-Observer stores this in observer.yaml
+Observer stores this in `observer.yaml`
 
 ### Auth Flow
 
-* /observer/bootstrap → requires bootstrap token
-* All other /observer/... routes → require persistent observer\_token
+* `/observer/bootstrap` → requires bootstrap token
+* All other `/observer/...` routes → require persistent `observer_token`
 
 Tokens are stored in:
 
 * `observer_bootstrap_token` table
 * `observer_tokens` table
 
+---
+
 ## 📡 Ping Handler & Actions
 
-### Purpose of /api/observer/ping
+### Purpose of `/api/observer/ping`
 
 * Acts as a heartbeat signal
 * Confirms observer is alive
@@ -139,6 +145,8 @@ Server replies:
 }
 ```
 
+---
+
 ## 🔄 Action Handling Plan
 
 ### Supported Action Types
@@ -157,6 +165,8 @@ if res.Action != nil {
 ```
 
 * No retries or queues — one action per ping.
+
+---
 
 ## 📦 Metrics Architecture
 
@@ -194,6 +204,8 @@ ALTER TABLE observer_metrics SET (
 SELECT add_compression_policy('observer_metrics', INTERVAL '7 days');
 ```
 
+---
+
 ## ⏱️ Collector Runtime Design
 
 ### Core Loops
@@ -213,9 +225,11 @@ flush.StartFlusher(conf) // Posts metrics to /observer/data every 15s
 | mem\_used           | mem.go    | 10s      | MB                                    |
 | mem\_free           | mem.go    | 10s      | MB (uses Available)                   |
 | disk\_used\_percent | disk.go   | 60s      | Per mount, label: {"mount": "/"}      |
-| net\_bytes\_sent    | net.go    | 30s      | Per interface                         |
+| net\_bytes\_sent    | net.go    | 30s      | Per interface: {"iface": "eth0"}      |
 | net\_bytes\_recv    | net.go    | 30s      | Per interface                         |
 | temp\_celsius       | temp.go   | 60s      | Per sensor, skips unsupported systems |
+
+---
 
 ## 🔄 Summary of Metric Flow
 
@@ -233,7 +247,9 @@ flush.StartFlusher(conf) // Posts metrics to /observer/data every 15s
   |---> Optional: events, alerts, dashboard summaries
 ```
 
-## 📈 Scaling Plan
+---
+
+## 📊 Scaling Plan
 
 * TimescaleDB hypertables + compression
 * Each metric entry ≈ 200 bytes
@@ -241,35 +257,32 @@ flush.StartFlusher(conf) // Posts metrics to /observer/data every 15s
 * Scales via chunking, compression, read replicas
 * `/observer/data` is separate from pings for efficient batch ingestion
 
+---
+
 ## ✅ Completed Steps
 
 * ✅ Persistent token stored and loaded from observer.yaml
 * ✅ Ping endpoint and action response working
 * ✅ TimescaleDB schema with hypertable and compression
-* ✅ DB insert function: InsertObserverMetrics
-* ✅ /observer/data POST endpoint for bulk metrics
+* ✅ DB insert function: `InsertObserverMetrics`
+* ✅ `/observer/data` POST endpoint for bulk metrics
 * ✅ Thread-safe queue + 15s flusher
-* ✅ Collectors implemented:
-
-  * CPU
-  * Memory
-  * Disk
-  * Network
-  * Temp (conditional)
+* ✅ Collectors implemented: CPU, Memory, Disk, Network, Temp
 * ✅ Observer dashboard implemented in Horizon frontend:
 
   * Observer list grouped per tenant
   * Metrics shown per observer: CPU, Memory, Disk, Network, Temp
-  * Supports `last_seen` and `last_uptime_seconds`
-  * Metrics fetched from TimescaleDB using `latest_metrics` CTE
+  * `last_seen` and `last_uptime_seconds` shown
+  * Metrics fetched using `latest_metrics` CTE
   * Observers without metrics are omitted
   * Sorted by name client-side
+* ✅ **Per-observer drilldown added**:
 
-## 🔄 Optional Next Steps
-
-* Implement dispatcher.Dispatch for collect-once actions
-* Add observer\_status table for alerts/summaries
-* Support config sync from backend
-* Add auto-update support to Observer
-* Build graph views and per-observer drilldowns in Horizon
-* Add metric overlays and time-based filters
+  * Route: `/home/[id]`
+  * Page fetches full observer metadata and metrics grouped by name and label
+  * Supports `?range=1h`, `6h`, `24h`, `7d`
+  * Includes relative last seen, uptime, tags, and dynamic charts
+  * Network charts split per `iface` (interface label)
+  * Disk usage charts now split per `mount` (mountpoint label)
+  * Two separate tiles: one for historical time-series (line chart), one for current usage (bar chart)
+  * Fully reactive via dropdown time range selector

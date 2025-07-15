@@ -33,10 +33,20 @@
 	}
 
 	function formatUptime(seconds: number): string {
-		const h = Math.floor(seconds / 3600);
-		const m = Math.floor((seconds % 3600) / 60);
-		const s = seconds % 60;
-		return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+		const days = Math.floor(seconds / 86400);
+		const hours = Math.floor((seconds % 86400) / 3600);
+		const minutes = Math.floor((seconds % 3600) / 60);
+		const secs = seconds % 60;
+
+		if (days > 0) {
+			// Format with days: "2d 14h 30m"
+			return `${days}d ${hours}h ${minutes}m`;
+		} else {
+			// Format as HH:MM:SS for less than a day
+			return `${hours.toString().padStart(2, '0')}:${minutes
+				.toString()
+				.padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+		}
 	}
 
 	function formatRelativeTime(iso: string): string {

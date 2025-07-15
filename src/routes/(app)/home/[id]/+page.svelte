@@ -102,12 +102,20 @@
 	}
 
 	function formatUptime(seconds: number): string {
-		const hours = Math.floor(seconds / 3600);
+		const days = Math.floor(seconds / 86400);
+		const hours = Math.floor((seconds % 86400) / 3600);
 		const minutes = Math.floor((seconds % 3600) / 60);
 		const secs = seconds % 60;
-		return `${hours.toString().padStart(2, '0')}:${minutes
-			.toString()
-			.padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+		if (days > 0) {
+			// Format with days: "2d 14h 30m"
+			return `${days}d ${hours}h ${minutes}m`;
+		} else {
+			// Format as HH:MM:SS for less than a day
+			return `${hours.toString().padStart(2, '0')}:${minutes
+				.toString()
+				.padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+		}
 	}
 
 	function getStatusColor(lastSeen: string): string {
@@ -280,6 +288,79 @@
 		networkRecv10min = calculateNetworkUsage('net_bytes_recv', 10);
 		networkRecv15min = calculateNetworkUsage('net_bytes_recv', 15);
 	}
+
+	// Disk usage functions
+	function groupDiskMetrics(): Record<string, MetricSnapshot[]> {
+		const diskData = metrics['disk_used_percent'];
+		if (!diskData || diskData.length === 0) return {};
+
+		const grouped: Record<string, MetricSnapshot[]> = {};
+
+		diskData.forEach((snapshot) => {
+			const mount = snapshot.labels?.mount || 'unknown';
+			if (!grouped[mount]) {
+				grouped[mount] = [];
+			}
+			grouped[mount].push(snapshot);
+		});
+
+		return grouped;
+	}
+
+	function getCurrentDiskUsage(): Array<{ mount: string; usage: number; color: string }> {
+		const grouped = groupDiskMetrics();
+		const result: Array<{ mount: string; usage: number; color: string }> = [];
+
+		Object.entries(grouped).forEach(([mount, snapshots]) => {
+			if (snapshots.length > 0) {
+				// Get the most recent snapshot
+				const latest = snapshots.reduce((latest, current) =>
+					new Date(current.time) > new Date(latest.time) ? current : latest
+				);
+
+				// Determine color based on usage
+				let color = '#10b981'; // Green
+				if (latest.value >= 85) {
+					color = '#ef4444'; // Red
+				} else if (latest.value >= 60) {
+					color = '#f59e0b'; // Yellow
+				}
+
+				result.push({
+					mount,
+					usage: latest.value,
+					color
+				});
+			}
+		});
+
+		// Sort by usage descending
+		return result.sort((a, b) => b.usage - a.usage);
+	}
+
+	function createDiskTrendsDataset(): { data: MetricSnapshot[]; mounts: string[] } {
+		const grouped = groupDiskMetrics();
+		const mounts = Object.keys(grouped);
+		const data: MetricSnapshot[] = [];
+
+		mounts.forEach((mount) => {
+			grouped[mount].forEach((snapshot) => {
+				data.push({
+					...snapshot,
+					interfaceName: mount // Reuse interfaceName for groupBy
+				});
+			});
+		});
+
+		return { data, mounts };
+	}
+
+	// Reactive calculations for disk usage
+	$: currentDiskUsage = metrics['disk_used_percent'] ? getCurrentDiskUsage() : [];
+	$: diskTrendsData = metrics['disk_used_percent']
+		? createDiskTrendsDataset()
+		: { data: [], mounts: [] };
+	$: visibleMounts = diskTrendsData.mounts.slice(0, 6); // Limit to 6 mounts for readability
 </script>
 
 <svelte:head>
@@ -482,35 +563,152 @@
 			</div>
 		{/if}
 
+		<!-- Disk Usage Dashboard Tiles -->
+		{#if availableMetrics.includes('disk_used_percent')}
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<!-- Tile 1: Disk Usage Bar Chart (Current Snapshot) -->
+				<div class="card bg-base-100 border-base-200 border shadow-sm">
+					<div class="card-body">
+						<h3 class="card-title text-lg">Disk Usage by Mount Point</h3>
+						{#if currentDiskUsage.length > 0}
+							<div class="space-y-4">
+								{#each currentDiskUsage as disk}
+									<div class="flex items-center gap-3">
+										<div class="flex-1">
+											<div class="mb-1 flex items-center justify-between text-sm">
+												<span
+													class="text-base-content max-w-xs truncate font-medium"
+													title={disk.mount}
+												>
+													{disk.mount}
+												</span>
+												<span
+													class="badge badge-outline text-base font-semibold"
+													style="color: {disk.color}; border-color: {disk.color}"
+												>
+													{disk.usage.toFixed(1)}%
+												</span>
+											</div>
+											<div class="bg-base-200 h-3 w-full rounded-full shadow-inner">
+												<div
+													class="h-3 rounded-full shadow-sm transition-all duration-500 ease-out"
+													style="width: {disk.usage}%; background-color: {disk.color}"
+												></div>
+											</div>
+										</div>
+									</div>
+								{/each}
+							</div>
+						{:else}
+							<div class="py-8 text-center">
+								<svg
+									class="text-base-content/30 mx-auto h-12 w-12"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+									></path>
+								</svg>
+								<div class="text-base-content/50 mt-2 text-sm">No disk usage data available</div>
+							</div>
+						{/if}
+					</div>
+				</div>
+
+				<!-- Tile 2: Disk Usage Over Time -->
+				<div class="card bg-base-100 border-base-200 border shadow-sm">
+					<div class="card-body">
+						<div class="mb-4 flex items-center justify-between">
+							<h3 class="card-title text-lg">Disk Usage Trends</h3>
+							{#if diskTrendsData.mounts.length > 6}
+								<select
+									class="select select-sm select-bordered"
+									on:change={(e) => {
+										const target = e.target as HTMLSelectElement;
+										const selectedCount = parseInt(target.value);
+										visibleMounts = diskTrendsData.mounts.slice(0, selectedCount);
+									}}
+								>
+									<option value="6">Show 6 mounts</option>
+									<option value="12">Show 12 mounts</option>
+									<option value={diskTrendsData.mounts.length}
+										>Show all ({diskTrendsData.mounts.length})</option
+									>
+								</select>
+							{/if}
+						</div>
+
+						{#if diskTrendsData.data.length > 0}
+							<div class="h-80">
+								<MetricChart
+									title=""
+									data={diskTrendsData.data.filter((d) =>
+										visibleMounts.includes(d.interfaceName || 'unknown')
+									)}
+									unit="%"
+									color="#f59e0b"
+									groupBy="interfaceName"
+								/>
+							</div>
+						{:else}
+							<div class="py-8 text-center">
+								<svg
+									class="text-base-content/30 mx-auto h-12 w-12"
+									fill="none"
+									stroke="currentColor"
+									viewBox="0 0 24 24"
+								>
+									<path
+										stroke-linecap="round"
+										stroke-linejoin="round"
+										stroke-width="2"
+										d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+									></path>
+								</svg>
+								<div class="text-base-content/50 mt-2 text-sm">No disk usage trends available</div>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+		{/if}
+
 		<!-- Metrics Charts -->
 		{#if !loading && !error}
 			{#if availableMetrics.length > 0}
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					{#each availableMetrics as metricName}
-						{@const config = metricConfigs[metricName] || {
-							unit: '',
-							color: '#6b7280',
-							title: metricName
-						}}
+						{#if metricName !== 'disk_used_percent'}
+							{@const config = metricConfigs[metricName] || {
+								unit: '',
+								color: '#6b7280',
+								title: metricName
+							}}
 
-						{#if metricName === 'net_bytes_sent' || metricName === 'net_bytes_recv'}
-							{@const networkData = createNetworkMetricDataset(metricName)}
-							{#if networkData.data.length > 0}
+							{#if metricName === 'net_bytes_sent' || metricName === 'net_bytes_recv'}
+								{@const networkData = createNetworkMetricDataset(metricName)}
+								{#if networkData.data.length > 0}
+									<MetricChart
+										title={config.title}
+										data={networkData.data}
+										unit={config.unit}
+										color={config.color}
+										groupBy="interfaceName"
+									/>
+								{/if}
+							{:else}
 								<MetricChart
 									title={config.title}
-									data={networkData.data}
+									data={metrics[metricName]}
 									unit={config.unit}
 									color={config.color}
-									groupBy="interfaceName"
 								/>
 							{/if}
-						{:else}
-							<MetricChart
-								title={config.title}
-								data={metrics[metricName]}
-								unit={config.unit}
-								color={config.color}
-							/>
 						{/if}
 					{/each}
 				</div>
