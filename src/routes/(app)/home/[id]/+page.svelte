@@ -11,6 +11,7 @@
 		value: number;
 		metric_name: string;
 		labels?: Record<string, any>;
+		interfaceName?: string;
 	}
 
 	interface Observer {
@@ -125,6 +126,46 @@
 	}
 
 	$: availableMetrics = Object.keys(metrics).filter((key) => metrics[key]?.length > 0);
+
+	// Group network metrics by interface
+	function groupNetworkMetrics(metricName: string): Record<string, MetricSnapshot[]> {
+		const metricData = metrics[metricName];
+		if (!metricData) return {};
+
+		const grouped: Record<string, MetricSnapshot[]> = {};
+
+		metricData.forEach((snapshot) => {
+			const iface = snapshot.labels?.iface || 'unknown';
+			if (!grouped[iface]) {
+				grouped[iface] = [];
+			}
+			grouped[iface].push(snapshot);
+		});
+
+		return grouped;
+	}
+
+	// Create a combined dataset for all interfaces of a network metric
+	function createNetworkMetricDataset(metricName: string): {
+		data: MetricSnapshot[];
+		interfaces: string[];
+	} {
+		const grouped = groupNetworkMetrics(metricName);
+		const interfaces = Object.keys(grouped);
+		const data: MetricSnapshot[] = [];
+
+		interfaces.forEach((iface) => {
+			grouped[iface].forEach((snapshot) => {
+				data.push({
+					...snapshot,
+					// Add interface info to the snapshot for chart rendering
+					interfaceName: iface
+				});
+			});
+		});
+
+		return { data, interfaces };
+	}
 </script>
 
 <svelte:head>
@@ -273,12 +314,26 @@
 							color: '#6b7280',
 							title: metricName
 						}}
-						<MetricChart
-							title={config.title}
-							data={metrics[metricName]}
-							unit={config.unit}
-							color={config.color}
-						/>
+
+						{#if metricName === 'net_bytes_sent' || metricName === 'net_bytes_recv'}
+							{@const networkData = createNetworkMetricDataset(metricName)}
+							{#if networkData.data.length > 0}
+								<MetricChart
+									title={config.title}
+									data={networkData.data}
+									unit={config.unit}
+									color={config.color}
+									groupBy="interfaceName"
+								/>
+							{/if}
+						{:else}
+							<MetricChart
+								title={config.title}
+								data={metrics[metricName]}
+								unit={config.unit}
+								color={config.color}
+							/>
+						{/if}
 					{/each}
 				</div>
 			{:else}

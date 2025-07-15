@@ -7,9 +7,11 @@
 		value: number;
 		metric_name: string;
 		labels?: Record<string, any>;
+		interfaceName?: string;
 	}>;
 	export let unit: string = '';
 	export let color: string = '#3b82f6';
+	export let groupBy: string | undefined = undefined;
 
 	let canvas: HTMLCanvasElement;
 	let chart: any;
@@ -17,6 +19,27 @@
 	interface ChartDataPoint {
 		x: string;
 		y: number;
+	}
+
+	// Convert bytes to appropriate unit and determine best unit for the dataset
+	function getBestUnitForDataset(data: Array<{ value: number }>): {
+		unit: string;
+		divisor: number;
+	} {
+		const maxValue = Math.max(...data.map((d) => d.value));
+
+		if (maxValue < 1024) {
+			return { unit: 'B', divisor: 1 };
+		} else if (maxValue < 1024 * 1024) {
+			return { unit: 'KB', divisor: 1024 };
+		} else {
+			return { unit: 'MB', divisor: 1024 * 1024 };
+		}
+	}
+
+	// Check if this is a network metric that should be converted
+	function isNetworkMetric(title: string): boolean {
+		return title.toLowerCase().includes('network') || title.toLowerCase().includes('bytes');
 	}
 
 	onMount(async () => {
@@ -28,29 +51,85 @@
 		if (canvas && data.length > 0) {
 			const ctx = canvas.getContext('2d');
 			if (ctx) {
-				// Sort data by time
-				const sortedData = [...data].sort(
-					(a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
-				);
+				// Generate colors for different interfaces
+				const colors = [
+					'#3b82f6',
+					'#10b981',
+					'#f59e0b',
+					'#ef4444',
+					'#8b5cf6',
+					'#06b6d4',
+					'#f97316'
+				];
 
-				const chartData: ChartDataPoint[] = sortedData.map((point) => ({
-					x: point.time,
-					y: point.value
-				}));
+				// Determine the best unit for network metrics
+				let actualUnit = unit;
+				let divisor = 1;
+				if (isNetworkMetric(title)) {
+					const bestUnit = getBestUnitForDataset(data);
+					actualUnit = bestUnit.unit;
+					divisor = bestUnit.divisor;
+				}
+
+				let datasets;
+
+				if (groupBy) {
+					// Group data by the specified field
+					const grouped: Record<string, Array<{ x: string; y: number }>> = {};
+
+					data.forEach((point) => {
+						const groupKey = (point as any)[groupBy] || 'unknown';
+						if (!grouped[groupKey]) {
+							grouped[groupKey] = [];
+						}
+						grouped[groupKey].push({
+							x: point.time,
+							y: point.value / divisor
+						});
+					});
+
+					// Create datasets for each group
+					datasets = Object.entries(grouped).map(([groupKey, groupData], index) => {
+						const sortedData = groupData.sort(
+							(a, b) => new Date(a.x).getTime() - new Date(b.x).getTime()
+						);
+
+						return {
+							label: groupKey,
+							data: sortedData,
+							borderColor: colors[index % colors.length],
+							backgroundColor: colors[index % colors.length] + '20',
+							tension: 0.1,
+							fill: false
+						};
+					});
+				} else {
+					// Sort data by time
+					const sortedData = [...data].sort(
+						(a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+					);
+
+					const chartData: ChartDataPoint[] = sortedData.map((point) => ({
+						x: point.time,
+						y: point.value / divisor
+					}));
+
+					datasets = [
+						{
+							label: title,
+							data: chartData,
+							borderColor: color,
+							backgroundColor: color + '20',
+							tension: 0.1,
+							fill: false
+						}
+					];
+				}
 
 				chart = new Chart(ctx, {
 					type: 'line',
 					data: {
-						datasets: [
-							{
-								label: title,
-								data: chartData,
-								borderColor: color,
-								backgroundColor: color + '20',
-								tension: 0.1,
-								fill: false
-							}
-						]
+						datasets: datasets
 					},
 					options: {
 						responsive: true,
@@ -73,17 +152,32 @@
 								beginAtZero: true,
 								title: {
 									display: true,
-									text: unit || 'Value'
+									text: actualUnit || 'Value'
 								}
 							}
 						},
 						plugins: {
 							legend: {
-								display: false
+								display: groupBy !== undefined,
+								position: 'right',
+								align: 'start',
+								labels: {
+									boxWidth: 12,
+									boxHeight: 2,
+									padding: 8,
+									font: {
+										size: 11
+									},
+									usePointStyle: true
+								}
 							},
 							title: {
 								display: true,
-								text: title
+								text: title,
+								padding: {
+									top: 10,
+									bottom: 15
+								}
 							}
 						}
 					}
@@ -100,16 +194,78 @@
 
 	// Reactive update when data changes
 	$: if (chart && data) {
-		const sortedData = [...data].sort(
-			(a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
-		);
+		const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316'];
 
-		const chartData: ChartDataPoint[] = sortedData.map((point) => ({
-			x: point.time,
-			y: point.value
-		}));
+		// Determine the best unit for network metrics
+		let actualUnit = unit;
+		let divisor = 1;
+		if (isNetworkMetric(title)) {
+			const bestUnit = getBestUnitForDataset(data);
+			actualUnit = bestUnit.unit;
+			divisor = bestUnit.divisor;
+		}
 
-		chart.data.datasets[0].data = chartData;
+		let datasets;
+
+		if (groupBy) {
+			// Group data by the specified field
+			const grouped: Record<string, Array<{ x: string; y: number }>> = {};
+
+			data.forEach((point) => {
+				const groupKey = (point as any)[groupBy] || 'unknown';
+				if (!grouped[groupKey]) {
+					grouped[groupKey] = [];
+				}
+				grouped[groupKey].push({
+					x: point.time,
+					y: point.value / divisor
+				});
+			});
+
+			// Create datasets for each group
+			datasets = Object.entries(grouped).map(([groupKey, groupData], index) => {
+				const sortedData = groupData.sort(
+					(a, b) => new Date(a.x).getTime() - new Date(b.x).getTime()
+				);
+
+				return {
+					label: groupKey,
+					data: sortedData,
+					borderColor: colors[index % colors.length],
+					backgroundColor: colors[index % colors.length] + '20',
+					tension: 0.1,
+					fill: false
+				};
+			});
+		} else {
+			const sortedData = [...data].sort(
+				(a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+			);
+
+			const chartData: ChartDataPoint[] = sortedData.map((point) => ({
+				x: point.time,
+				y: point.value / divisor
+			}));
+
+			datasets = [
+				{
+					label: title,
+					data: chartData,
+					borderColor: color,
+					backgroundColor: color + '20',
+					tension: 0.1,
+					fill: false
+				}
+			];
+		}
+
+		chart.data.datasets = datasets;
+
+		// Update the y-axis label
+		if (chart.options.scales.y.title) {
+			chart.options.scales.y.title.text = actualUnit || 'Value';
+		}
+
 		chart.update();
 	}
 </script>
