@@ -1,201 +1,275 @@
-# 📘 CosmosWatcher – Dev Overview & Tenant Auth Logic
+# 🌌 CosmosWatcher – Unified Agent and Backend Architecture Prompt
 
-**CosmosWatcher** is a multi-tenant Linux system observation and administration suite, consisting of three coordinated components:
-
-- **Observer**: Lightweight agent deployed on systems to monitor and report data  
-- **Singularity**: Backend service written in Go (Gorilla Mux + PostgreSQL)  
-- **Horizon**: Responsive frontend built with SvelteKit 5 + TailwindCSS + DaisyUI  
+**Version:** July 2025 (Updated)
+**Components:** Observer (agent), Singularity (backend), Horizon (frontend)
+**Focus:** Observer design, secure registration, metrics ingestion, scalable storage using TimescaleDB, and action orchestration via Ping
 
 ---
 
-## 🔧 Backend (Singularity)
+## 🧠 Overview
 
-### 🔐 Authentication
+CosmosWatcher is a multi-tenant system observation and control platform. It consists of:
 
-- **JWT-based** using `access_token`
-- Tokens include:
-  - `sub`, `email`, `is_global_admin`, `tenants[]` (id, name, slug, role)
-- Middleware:
-  - Extracts JWT from `Authorization` header
-  - Uses `X-Tenant-ID` to determine current tenant context
-  - Injects context values: `UserKey`, `TenantKey`
+* **Observer**: A Go-based agent that collects and sends system metrics.
+* **Singularity**: A Go server (Gorilla Mux + PostgreSQL + TimescaleDB) that handles secure registration, telemetry, and action coordination.
+* **Horizon**: A SvelteKit-based frontend for viewing agents, metrics, and actions.
 
-### 👥 Users & Tenants
+---
 
-- Global users stored in `users` table
-- Users can belong to multiple tenants via `tenant_users`
-- Roles per tenant: `user`, `admin`
-- `is_global_admin` flag gives access to platform-wide routes
+## 📦 Database Functions
 
-#### ➕ Signup Flow (`POST /api/signup`)
+Database functions for Singularity are located in `main/internal/database`.
+Usage:
 
-- Accepts: `email`, `password`, `org_name`, `account_only`
-- If user does not exist:
-  - Account is created with `is_verified = false`
-- If no tenant is selected:
-  - User can create a new tenant if:
-    - They provided `org_name`
-    - They have no tenant memberships
-- Slug is generated from org name using `slugify`
-- Error handling:
-  - `409` for existing email or slug, with clear frontend messages
+```go
+import db "main/internal/database"
 
-#### ➕ Tenant Creation (`POST /api/tenant`)
+func UpdateObserverHeartbeat(observerID string, tenantID uuid.UUID, seenAt time.Time) error {
+	_, err := dbs.Exec(`
+		UPDATE observer
+		SET last_seen = $1
+		WHERE id = $2 AND tenant_id = $3
+	`, seenAt, observerID, tenantID)
+	return err
+}
+```
 
-- **Allowed if**:
-  - User is a global admin **or**
-  - User has no tenants yet
-- Global admins are **not** added to new tenants unless it’s their first
-- Regular users are added as `admin` to the new tenant
+## 🚀 Observer: Agent Design
 
-### 📦 Database
+### Core Responsibilities
 
-- **PostgreSQL**, managed with **Go Migrate**
-- Accessed via manual SQL using `dbs.Query`, `dbs.QueryRow`
-- Shared structs live in the `types` package
+* Secure bootstrap using a one-time token
+* Send periodic heartbeat pings
+* Collect system metrics via modular collectors
+* Support remote instructions (actions)
+* Optional: Auto-update and run as a service
 
-#### Schema Overview
+### 🌟 Goal
+
+Enable efficient collection, storage, and querying of time-series metrics (e.g., CPU, disk, memory, temperature, network) from 10,000–1,000,000+ Observer agents.
+
+### 🗂️ Observer Project Structure
+
+```
+observer/
+├── cmd/           # CLI commands (install, run, update)
+├── collector/     # Modular collectors (e.g., cpu.go, disk.go, mem.go, net.go, temp.go)
+├── internal/
+│   ├── bootstrap/ # Bootstrap logic
+│   ├── ping/      # Ping logic
+│   ├── config/    # YAML config via Viper
+│   ├── queue/     # Metric batching and flushing
+│   └── service/   # Service install/run logic
+├── types/         # Shared metric struct
+└── observer.yaml  # Config file with tokens and IDs
+```
+
+### 📝 observer.yaml Format
+
+```yaml
+bootstrap_token: abc123             # Used once for registration
+observer_token: f36b...             # Persistent token used after bootstrap
+server_url: https://api.myorg.com
+observer_id: 123e...
+tenant_id: 456a...
+```
+
+## 🔐 Bootstrap and Authentication
+
+### Bootstrap Flow
+
+Observer POSTs to /api/observer/bootstrap with Authorization: Bearer \<bootstrap\_token>
+
+Server returns:
+
+```json
+{
+  "observer_id": "...",
+  "tenant_id": "...",
+  "observer_token": "..."
+}
+```
+
+Observer stores this in observer.yaml
+
+### Auth Flow
+
+* /observer/bootstrap → requires bootstrap token
+* All other /observer/... routes → require persistent observer\_token
+
+Tokens are stored in:
+
+* `observer_bootstrap_token` table
+* `observer_tokens` table
+
+## 📡 Ping Handler & Actions
+
+### Purpose of /api/observer/ping
+
+* Acts as a heartbeat signal
+* Confirms observer is alive
+* Optionally sends minimal metrics
+* Returns optional action payload
+
+### Example Ping Flow
+
+Observer sends:
+
+```json
+{
+  "timestamp": "2025-07-14T20:00:00Z",
+  "metrics": {
+    "cpu": 12.5,
+    "mem_free": 2048
+  }
+}
+```
+
+Server replies:
+
+```json
+{
+  "success": true,
+  "next_interval": 30,
+  "action": {
+    "type": "collect-once",
+    "target": "disk",
+    "args": { "path": "/var/log" }
+  }
+}
+```
+
+## 🔄 Action Handling Plan
+
+### Supported Action Types
+
+* `collect-once`: Run a one-time collector immediately
+* `update-now`: Force an agent update
+* `shutdown`: Gracefully stop the agent
+
+### Dispatch Design
+
+```go
+if res.Action != nil {
+	log.Printf("Action received: %s on %s", res.Action.Type, res.Action.Target)
+	dispatcher.Dispatch(res.Action)
+}
+```
+
+* No retries or queues — one action per ping.
+
+## 📦 Metrics Architecture
+
+### Backend: TimescaleDB
+
+CosmosWatcher uses TimescaleDB with hypertables for high-ingestion time-series workloads.
+
+### Why Timescale?
+
+* Built on PostgreSQL
+* Native time-based partitioning
+* Compression & retention policies
+* High insert throughput
+
+### Table Design
 
 ```sql
-CREATE TABLE tenant (
-  id UUID PRIMARY KEY,
-  slug TEXT UNIQUE,
-  name TEXT,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now()
+CREATE TABLE observer_metrics (
+  time         TIMESTAMPTZ      NOT NULL,
+  observer_id  UUID             NOT NULL,
+  tenant_id    UUID             NOT NULL,
+  metric_name  TEXT             NOT NULL,
+  value        DOUBLE PRECISION NOT NULL,
+  labels       JSONB            DEFAULT '{}'::JSONB
 );
 
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  email TEXT UNIQUE,
-  hashed_password TEXT,
-  is_verified BOOLEAN DEFAULT false,
-  is_global_admin BOOLEAN DEFAULT false,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  last_login_at TIMESTAMPTZ
+SELECT create_hypertable('observer_metrics', 'time');
+
+ALTER TABLE observer_metrics SET (
+  timescaledb.compress,
+  timescaledb.compress_orderby = 'time DESC',
+  timescaledb.compress_segmentby = 'observer_id'
 );
 
-CREATE TABLE tenant_users (
-  id UUID PRIMARY KEY,
-  tenant_id UUID REFERENCES tenant(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-  role TEXT DEFAULT 'user',
-  joined_at TIMESTAMPTZ DEFAULT now(),
-  UNIQUE (tenant_id, user_id)
-);
-Response Example
-go
-Copy
-Edit
-type TenantResponse struct {
-  ID        string    `json:"id"`
-  Slug      string    `json:"slug"`
-  Name      string    `json:"name"`
-  IsActive  bool      `json:"is_active"`
-  CreatedAt time.Time `json:"created_at"`
-  UserCount int       `json:"user_count"`
-}
-🎨 Frontend (Horizon)
-🧱 Tech Stack
-SvelteKit 5
+SELECT add_compression_policy('observer_metrics', INTERVAL '7 days');
+```
 
-TailwindCSS + DaisyUI (custom space-themed OKLCH palette)
+## ⏱️ Collector Runtime Design
 
-🌌 Theme Philosophy
-Observer = minimal, silent, observant
+### Core Loops
 
-Singularity = central, powerful, gravitational
+```go
+startPingLoop(conf)      // Sends heartbeat and receives actions
+startCollectors(conf)    // Starts collectors (CPU, mem, etc.)
+flush.StartFlusher(conf) // Posts metrics to /observer/data every 15s
+```
 
-Horizon = visible, insightful, interactive
+### Collectors Implemented
 
-🧭 Sidebar Navigation
-Logo: 🌌 CosmosWatcher + Horizon Portal
+| Metric Name         | Collector | Interval | Notes                                 |
+| ------------------- | --------- | -------- | ------------------------------------- |
+| cpu\_usage          | cpu.go    | 10s      | Aggregate, 600ms sample               |
+| mem\_total          | mem.go    | 10s      | MB                                    |
+| mem\_used           | mem.go    | 10s      | MB                                    |
+| mem\_free           | mem.go    | 10s      | MB (uses Available)                   |
+| disk\_used\_percent | disk.go   | 60s      | Per mount, label: {"mount": "/"}      |
+| net\_bytes\_sent    | net.go    | 30s      | Per interface                         |
+| net\_bytes\_recv    | net.go    | 30s      | Per interface                         |
+| temp\_celsius       | temp.go   | 60s      | Per sensor, skips unsupported systems |
 
-Routes:
+## 🔄 Summary of Metric Flow
 
-/home – Dashboard
+```
+[Observer]
+  |
+  |---> /observer/ping     → heartbeat, light metrics, returns actions
+  |---> /observer/data     → bulk metric ingest
+                         → JSON: {metrics: [{time, metric_name, value, labels}]}
+  |
+[Singularity]
+  |
+  |---> TimescaleDB (hypertable: observer_metrics)
+  |
+  |---> Optional: events, alerts, dashboard summaries
+```
 
-/agents – Observers
+## 📈 Scaling Plan
 
-/tenant-admin – Tenant-level admin
+* TimescaleDB hypertables + compression
+* Each metric entry ≈ 200 bytes
+* 100,000 agents \* 6 metrics/min ≈ 120 MB/hour uncompressed
+* Scales via chunking, compression, read replicas
+* `/observer/data` is separate from pings for efficient batch ingestion
 
-/global-admin – Global admin panel (only visible if is_global_admin)
+## ✅ Completed Steps
 
-🧠 Tenant Management
-Tenant list decoded from JWT payload
+* ✅ Persistent token stored and loaded from observer.yaml
+* ✅ Ping endpoint and action response working
+* ✅ TimescaleDB schema with hypertable and compression
+* ✅ DB insert function: InsertObserverMetrics
+* ✅ /observer/data POST endpoint for bulk metrics
+* ✅ Thread-safe queue + 15s flusher
+* ✅ Collectors implemented:
 
-selectedTenant:
+  * CPU
+  * Memory
+  * Disk
+  * Network
+  * Temp (conditional)
+* ✅ Observer dashboard implemented in Horizon frontend:
 
-Saved to localStorage
+  * Observer list grouped per tenant
+  * Metrics shown per observer: CPU, Memory, Disk, Network, Temp
+  * Supports `last_seen` and `last_uptime_seconds`
+  * Metrics fetched from TimescaleDB using `latest_metrics` CTE
+  * Observers without metrics are omitted
+  * Sorted by name client-side
 
-Managed via writable Svelte store
+## 🔄 Optional Next Steps
 
-Auto-selects first tenant if none is stored
-
-Modal-based tenant switcher
-
-🔐 Auth Handling
-Login UI: /login
-
-Local storage keys:
-
-access_token, user_payload, selected_tenant
-
-isLoggedIn() checks for valid token presence and expiration
-
-(app) layout uses guard to block unauthenticated access
-
-🛠 Admin Features
-🌍 Global Admin Panel
-Path: /global-admin
-
-Lists all tenants (GET /singularity/api/tenants)
-
-Can create new tenants (POST /api/tenant)
-
-Name + auto-generated or provided slug
-
-🏢 Tenant Admin Panel
-Path: /tenant-admin
-
-Shows users in the current tenant
-
-Supports:
-
-Invite via email + optional name + role
-
-If user exists: added to tenant
-
-If user does not exist: user created + temp password shown
-
-Modal displays onboarding info (e.g., temp password copy)
-
-🆕 Tenant Creation Modal (Frontend)
-Shown if selectedTenant is empty but user is logged in
-
-Available to:
-
-Global admins
-
-Users with no tenants
-
-Calls POST /api/tenant
-
-On success:
-
-Updates tenant list
-
-Adds user to new tenant (if non-admin)
-
-✅ Status
-✔️ Multi-tenant JWT auth functional
-
-✔️ Signup + Tenant creation logic in place
-
-✔️ Tenant context switching operational
-
-✔️ Tenant & user management UIs implemented
-
-✔️ Role-based routing + access control
-
-This document serves as a technical summary and onboarding reference for development across all CosmosWatcher components.
+* Implement dispatcher.Dispatch for collect-once actions
+* Add observer\_status table for alerts/summaries
+* Support config sync from backend
+* Add auto-update support to Observer
+* Build graph views and per-observer drilldowns in Horizon
+* Add metric overlays and time-based filters

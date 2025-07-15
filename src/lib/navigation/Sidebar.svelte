@@ -134,35 +134,35 @@
 			<div class="flex-1 px-6">
 				<p class="mb-4 text-xs font-medium tracking-wide text-slate-400 uppercase">System Access</p>
 				<nav class="space-y-2">
-					<a
-						href="/home"
-						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
+					<button
+						on:click={() => goto('/home')}
+						class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 					>
 						<span class="text-blue-400">●</span>
 						<span class="font-medium">Dashboard</span>
-					</a>
-					<a
-						href="/agents"
-						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
+					</button>
+					<button
+						on:click={() => goto('/agents')}
+						class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 					>
 						<span class="text-blue-400">●</span>
 						<span class="font-medium">Observers</span>
-					</a>
-					<a
-						href="/admin"
-						class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
+					</button>
+					<button
+						on:click={() => goto('/admin')}
+						class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 					>
 						<span class="text-blue-400">●</span>
 						<span class="font-medium">Admin</span>
-					</a>
+					</button>
 					{#if $isGlobalAdmin}
-						<a
-							href="/singularity"
-							class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
+						<button
+							on:click={() => goto('/singularity')}
+							class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 						>
 							<span class="text-amber-400">●</span>
 							<span class="font-medium">Singularity</span>
-						</a>
+						</button>
 					{/if}
 				</nav>
 			</div>
