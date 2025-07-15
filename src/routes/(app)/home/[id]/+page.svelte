@@ -130,18 +130,31 @@
 	// Group network metrics by interface
 	function groupNetworkMetrics(metricName: string): Record<string, MetricSnapshot[]> {
 		const metricData = metrics[metricName];
-		if (!metricData) return {};
+		if (!metricData) {
+			console.warn(`[groupNetworkMetrics] No data found for metric: ${metricName}`);
+			return {};
+		}
 
 		const grouped: Record<string, MetricSnapshot[]> = {};
 
-		metricData.forEach((snapshot) => {
+		metricData.forEach((snapshot, idx) => {
 			const iface = snapshot.labels?.iface || 'unknown';
+
+			if (!snapshot.labels || typeof snapshot.labels !== 'object') {
+				console.warn(`[${metricName}][${idx}] Missing or invalid labels:`, snapshot.labels);
+			} else if (!snapshot.labels.iface) {
+				console.warn(`[${metricName}][${idx}] 'iface' label not found in labels:`, snapshot.labels);
+			}
+
 			if (!grouped[iface]) {
 				grouped[iface] = [];
 			}
 			grouped[iface].push(snapshot);
 		});
 
+		console.log(
+			`[groupNetworkMetrics] Grouped ${metricData.length} datapoints into ${Object.keys(grouped).length} interfaces`
+		);
 		return grouped;
 	}
 
@@ -165,6 +178,107 @@
 		});
 
 		return { data, interfaces };
+	}
+
+	// Calculate network usage for a specific time period
+	function calculateNetworkUsage(metricName: string, minutes: number): number {
+		const metricData = metrics[metricName];
+		if (!metricData || metricData.length === 0) {
+			console.warn(`[${metricName}] No metric data available`);
+			return 0;
+		}
+
+		const now = new Date();
+		const cutoffTime = new Date(now.getTime() - minutes * 60 * 1000);
+		console.log(
+			`[${metricName}] Calculating usage over last ${minutes} minutes (cutoff: ${cutoffTime.toISOString()})`
+		);
+
+		const grouped = groupNetworkMetrics(metricName);
+		const interfaces = Object.keys(grouped);
+		console.log(`[${metricName}] Found ${interfaces.length} interfaces:`, interfaces);
+
+		if (interfaces.length === 0) {
+			console.warn(`[${metricName}] No interfaces found`);
+			return 0;
+		}
+
+		let totalUsage = 0;
+
+		for (const iface of interfaces) {
+			const data = grouped[iface];
+			if (!data || data.length === 0) {
+				console.warn(`[${metricName}] No data for interface ${iface}`);
+				continue;
+			}
+
+			// Sort snapshots by time ascending
+			const sorted = [...data].sort(
+				(a, b) => new Date(a.time).getTime() - new Date(b.time).getTime()
+			);
+
+			// Find the earliest snapshot at or before cutoff
+			const earliest = [...sorted]
+				.reverse()
+				.find((s) => new Date(s.time).getTime() <= cutoffTime.getTime());
+
+			// Most recent snapshot
+			const latest = sorted.at(-1);
+
+			console.log(`[${metricName}] Interface: ${iface}`);
+			console.log(`  Total points: ${sorted.length}`);
+			console.log(`  Latest point: ${latest?.time} -> ${latest?.value}`);
+			console.log(`  Earliest before cutoff: ${earliest?.time} -> ${earliest?.value}`);
+
+			if (!earliest || !latest) {
+				console.warn(`[${metricName}] Skipped interface ${iface}: Missing earliest or latest`);
+				continue;
+			}
+
+			if (new Date(latest.time).getTime() <= new Date(earliest.time).getTime()) {
+				console.warn(`[${metricName}] Skipped interface ${iface}: latest time <= earliest time`);
+				continue;
+			}
+
+			const delta = latest.value - earliest.value;
+			if (delta >= 0) {
+				totalUsage += delta;
+				console.log(`  Delta: ${delta}`);
+			} else {
+				console.warn(`  Negative delta (${delta}) for interface ${iface}, skipped`);
+			}
+		}
+
+		console.log(`[${metricName}] Total usage over ${minutes}min: ${totalUsage}`);
+		return totalUsage;
+	}
+
+	// Format bytes to human readable format
+	function formatBytes(bytes: number): string {
+		if (bytes === 0) return '0 B';
+		const k = 1024;
+		const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+		const i = Math.floor(Math.log(bytes) / Math.log(k));
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+	}
+	let networkSent5min = 0;
+	let networkRecv5min = 0;
+	let networkSent10min = 0;
+	let networkRecv10min = 0;
+	let networkSent15min = 0;
+	let networkRecv15min = 0;
+
+	// Reactive calculations for network usage
+	$: if (metrics['net_bytes_sent']) {
+		networkSent5min = calculateNetworkUsage('net_bytes_sent', 5);
+		networkSent10min = calculateNetworkUsage('net_bytes_sent', 10);
+		networkSent15min = calculateNetworkUsage('net_bytes_sent', 15);
+	}
+
+	$: if (metrics['net_bytes_recv']) {
+		networkRecv5min = calculateNetworkUsage('net_bytes_recv', 5);
+		networkRecv10min = calculateNetworkUsage('net_bytes_recv', 10);
+		networkRecv15min = calculateNetworkUsage('net_bytes_recv', 15);
 	}
 </script>
 
@@ -261,6 +375,70 @@
 						</div>
 					</div>
 				</div>
+
+				<!-- Network Usage Stats -->
+				{#if availableMetrics.includes('net_bytes_sent') || availableMetrics.includes('net_bytes_recv')}
+					<div class="mt-6">
+						<div class="mb-4 text-sm font-medium">Network Usage (All Interfaces)</div>
+
+						<!-- 5 Minutes -->
+						<div class="mb-4">
+							<div class="text-base-content/70 mb-2 text-xs font-medium">Last 5 Minutes</div>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div class="stat rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+									<div class="stat-title text-xs">Sent</div>
+									<div class="stat-value text-base text-red-600 dark:text-red-400">
+										{formatBytes(networkSent5min)}
+									</div>
+								</div>
+								<div class="stat rounded-lg bg-purple-50 p-3 dark:bg-purple-900/20">
+									<div class="stat-title text-xs">Received</div>
+									<div class="stat-value text-base text-purple-600 dark:text-purple-400">
+										{formatBytes(networkRecv5min)}
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- 10 Minutes -->
+						<div class="mb-4">
+							<div class="text-base-content/70 mb-2 text-xs font-medium">Last 10 Minutes</div>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div class="stat rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+									<div class="stat-title text-xs">Sent</div>
+									<div class="stat-value text-base text-red-600 dark:text-red-400">
+										{formatBytes(networkSent10min)}
+									</div>
+								</div>
+								<div class="stat rounded-lg bg-purple-50 p-3 dark:bg-purple-900/20">
+									<div class="stat-title text-xs">Received</div>
+									<div class="stat-value text-base text-purple-600 dark:text-purple-400">
+										{formatBytes(networkRecv10min)}
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- 15 Minutes -->
+						<div class="mb-4">
+							<div class="text-base-content/70 mb-2 text-xs font-medium">Last 15 Minutes</div>
+							<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+								<div class="stat rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+									<div class="stat-title text-xs">Sent</div>
+									<div class="stat-value text-base text-red-600 dark:text-red-400">
+										{formatBytes(networkSent15min)}
+									</div>
+								</div>
+								<div class="stat rounded-lg bg-purple-50 p-3 dark:bg-purple-900/20">
+									<div class="stat-title text-xs">Received</div>
+									<div class="stat-value text-base text-purple-600 dark:text-purple-400">
+										{formatBytes(networkRecv15min)}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				{/if}
 
 				<!-- Tags -->
 				{#if Object.keys(observer.tags).length > 0}
