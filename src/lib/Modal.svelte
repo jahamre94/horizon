@@ -6,7 +6,7 @@
 {#if visible}
 	<div class="modal modal-open">
 		<div
-			class="modal-box border border-slate-700 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl"
+			class="modal-box w-11/12 max-w-5xl border border-slate-700 bg-gradient-to-b from-slate-900 to-slate-800 shadow-2xl"
 		>
 			{#if header}
 				<h3 class="mb-4 text-lg font-bold text-white">{header}</h3>

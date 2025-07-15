@@ -1,131 +1,201 @@
-# CosmosWatcher – Development Context Summary
+# 📘 CosmosWatcher – Dev Overview & Tenant Auth Logic
 
 **CosmosWatcher** is a multi-tenant Linux system observation and administration suite, consisting of three coordinated components:
 
-* **Observer**: Lightweight agent deployed on systems to monitor and report data  
-* **Singularity**: Backend service written in Go (Gorilla Mux + PostgreSQL)  
-* **Horizon**: Responsive frontend built with SvelteKit 5 + TailwindCSS + DaisyUI  
+- **Observer**: Lightweight agent deployed on systems to monitor and report data  
+- **Singularity**: Backend service written in Go (Gorilla Mux + PostgreSQL)  
+- **Horizon**: Responsive frontend built with SvelteKit 5 + TailwindCSS + DaisyUI  
 
 ---
 
 ## 🔧 Backend (Singularity)
 
-* **Authentication**: JWT-based using `access_token`
+### 🔐 Authentication
 
-  * Tokens include `sub`, `email`, `is_global_admin`, and `tenants[]` (id, name, slug, role)
-  * Middleware extracts JWT from `Authorization` header and tenant from `X-Tenant-ID`
-  * Context keys (`UserKey`, `TenantKey`) used across the Go app
+- **JWT-based** using `access_token`
+- Tokens include:
+  - `sub`, `email`, `is_global_admin`, `tenants[]` (id, name, slug, role)
+- Middleware:
+  - Extracts JWT from `Authorization` header
+  - Uses `X-Tenant-ID` to determine current tenant context
+  - Injects context values: `UserKey`, `TenantKey`
 
-* **Users & Tenants**:
+### 👥 Users & Tenants
 
-  * Users can belong to multiple tenants via `tenant_users` table
-  * Global admin (`is_global_admin`) flag gives access to platform-wide routes
+- Global users stored in `users` table
+- Users can belong to multiple tenants via `tenant_users`
+- Roles per tenant: `user`, `admin`
+- `is_global_admin` flag gives access to platform-wide routes
 
-* **Routing**:
+#### ➕ Signup Flow (`POST /api/signup`)
 
-  * Uses Gorilla Mux router
-  * `/api` routes protected with middleware, e.g., `/api/login`, `/api/info` are public
-  * Serves the Svelte frontend via reverse proxy in dev mode
+- Accepts: `email`, `password`, `org_name`, `account_only`
+- If user does not exist:
+  - Account is created with `is_verified = false`
+- If no tenant is selected:
+  - User can create a new tenant if:
+    - They provided `org_name`
+    - They have no tenant memberships
+- Slug is generated from org name using `slugify`
+- Error handling:
+  - `409` for existing email or slug, with clear frontend messages
 
-* **Database**:
+#### ➕ Tenant Creation (`POST /api/tenant`)
 
-  * PostgreSQL
-  * Managed with Go Migrate
-  * Accessed via a `database` package with manual SQL (`dbs.Query`, `dbs.QueryRow`)
-  * Shared types in the `types` package (e.g., `types.TenantResponse`)
-  * Tables:
-  
-    ```
-    tenant (
-      id UUID PRIMARY KEY,
-      slug TEXT UNIQUE,
-      name TEXT,
-      is_active BOOLEAN DEFAULT true,
-      created_at TIMESTAMPTZ DEFAULT now()
-    )
+- **Allowed if**:
+  - User is a global admin **or**
+  - User has no tenants yet
+- Global admins are **not** added to new tenants unless it’s their first
+- Regular users are added as `admin` to the new tenant
 
-    users (
-      id UUID PRIMARY KEY,
-      email TEXT UNIQUE,
-      hashed_password TEXT,
-      is_verified BOOLEAN,
-      is_global_admin BOOLEAN,
-      created_at TIMESTAMPTZ,
-      last_login_at TIMESTAMPTZ
-    )
+### 📦 Database
 
-    tenant_users (
-      id UUID PRIMARY KEY,
-      tenant_id UUID REFERENCES tenant(id) ON DELETE CASCADE,
-      user_id UUID REFERENCES users(id) ON DELETE CASCADE,
-      role TEXT DEFAULT 'user',
-      joined_at TIMESTAMPTZ DEFAULT now(),
-      UNIQUE (tenant_id, user_id)
-    )
-    ```
+- **PostgreSQL**, managed with **Go Migrate**
+- Accessed via manual SQL using `dbs.Query`, `dbs.QueryRow`
+- Shared structs live in the `types` package
 
-  * Sample response type:  
-    ```go
-    type TenantResponse struct {
-      ID         string    `json:"id"`
-      Slug       string    `json:"slug"`
-      Name       string    `json:"name"`
-      IsActive   bool      `json:"is_active"`
-      CreatedAt  time.Time `json:"created_at"`
-      UserCount  int       `json:"user_count"`
-    }
-    ```
+#### Schema Overview
 
----
+```sql
+CREATE TABLE tenant (
+  id UUID PRIMARY KEY,
+  slug TEXT UNIQUE,
+  name TEXT,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
 
-## 🎨 Frontend (Horizon)
+CREATE TABLE users (
+  id UUID PRIMARY KEY,
+  email TEXT UNIQUE,
+  hashed_password TEXT,
+  is_verified BOOLEAN DEFAULT false,
+  is_global_admin BOOLEAN DEFAULT false,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  last_login_at TIMESTAMPTZ
+);
 
-* **Tech Stack**:
+CREATE TABLE tenant_users (
+  id UUID PRIMARY KEY,
+  tenant_id UUID REFERENCES tenant(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  role TEXT DEFAULT 'user',
+  joined_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (tenant_id, user_id)
+);
+Response Example
+go
+Copy
+Edit
+type TenantResponse struct {
+  ID        string    `json:"id"`
+  Slug      string    `json:"slug"`
+  Name      string    `json:"name"`
+  IsActive  bool      `json:"is_active"`
+  CreatedAt time.Time `json:"created_at"`
+  UserCount int       `json:"user_count"`
+}
+🎨 Frontend (Horizon)
+🧱 Tech Stack
+SvelteKit 5
 
-  * SvelteKit 5 (routing, layout, +page.ts/+.svelte)
-  * TailwindCSS
-  * DaisyUI with custom OKLCH-based space-themed design
+TailwindCSS + DaisyUI (custom space-themed OKLCH palette)
 
-* **Theme Philosophy**:
+🌌 Theme Philosophy
+Observer = minimal, silent, observant
 
-  * **Observer** = minimal, silent, observant
-  * **Singularity** = central, powerful, gravitational
-  * **Horizon** = visible, insightful, interactive
+Singularity = central, powerful, gravitational
 
-* **Sidebar Navigation**:
+Horizon = visible, insightful, interactive
 
-  * Logo: `🌌 CosmosWatcher` + Horizon Portal label
-  * Nav links:
-    * `/home` – Dashboard
-    * `/agents` – Observers
-    * `/tenant-admin` – Tenant-level admin
-    * `/global-admin` – Global admin panel (only visible if `is_global_admin` is true)
-  * Responsive drawer UI
-  * Logout clears localStorage and redirects to `/login`
+🧭 Sidebar Navigation
+Logo: 🌌 CosmosWatcher + Horizon Portal
 
-* **Tenant Management**:
+Routes:
 
-  * Tenant list loaded from JWT payload
-  * Auto-selects first tenant if none stored
-  * `selected_tenant` saved in localStorage and in a writable Svelte store
-  * Tenant switcher modal allows changing context
+/home – Dashboard
 
-* **Authentication Handling**:
+/agents – Observers
 
-  * Login page at `/login`
-  * Token and user data (`access_token`, `user_payload`, `selected_tenant`) stored in `localStorage`
-  * `isLoggedIn()` checks token presence and expiration
-  * Layout guard in `(app)` verifies login before rendering
+/tenant-admin – Tenant-level admin
 
----
+/global-admin – Global admin panel (only visible if is_global_admin)
 
-## ✅ Status
+🧠 Tenant Management
+Tenant list decoded from JWT payload
 
-* Login and multi-tenant JWT auth working end-to-end
-* Sidebar and navigation functional and styled
-* Theme is dark-space optimized with high contrast and branded sections
-* Tenant context switching operational
+selectedTenant:
 
----
+Saved to localStorage
 
-This file serves as a session primer or onboarding doc for continued development, frontend/backend coordination, and UI/UX iteration.
+Managed via writable Svelte store
+
+Auto-selects first tenant if none is stored
+
+Modal-based tenant switcher
+
+🔐 Auth Handling
+Login UI: /login
+
+Local storage keys:
+
+access_token, user_payload, selected_tenant
+
+isLoggedIn() checks for valid token presence and expiration
+
+(app) layout uses guard to block unauthenticated access
+
+🛠 Admin Features
+🌍 Global Admin Panel
+Path: /global-admin
+
+Lists all tenants (GET /singularity/api/tenants)
+
+Can create new tenants (POST /api/tenant)
+
+Name + auto-generated or provided slug
+
+🏢 Tenant Admin Panel
+Path: /tenant-admin
+
+Shows users in the current tenant
+
+Supports:
+
+Invite via email + optional name + role
+
+If user exists: added to tenant
+
+If user does not exist: user created + temp password shown
+
+Modal displays onboarding info (e.g., temp password copy)
+
+🆕 Tenant Creation Modal (Frontend)
+Shown if selectedTenant is empty but user is logged in
+
+Available to:
+
+Global admins
+
+Users with no tenants
+
+Calls POST /api/tenant
+
+On success:
+
+Updates tenant list
+
+Adds user to new tenant (if non-admin)
+
+✅ Status
+✔️ Multi-tenant JWT auth functional
+
+✔️ Signup + Tenant creation logic in place
+
+✔️ Tenant context switching operational
+
+✔️ Tenant & user management UIs implemented
+
+✔️ Role-based routing + access control
+
+This document serves as a technical summary and onboarding reference for development across all CosmosWatcher components.
