@@ -46,3 +46,36 @@
   --color-base-400: oklch(48% 0.05 240);  /* Mid-space shade for subtle elements */
   --color-base-500: oklch(55% 0.06 240);  /* Lighter space for interactive elements */
 }
+
+/* Mobile overflow fixes */
+html, body {
+  overflow-x: hidden;
+}
+
+/* Ensure drawer doesn't cause horizontal overflow on mobile */
+.drawer {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+.drawer-content {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure main content doesn't overflow */
+main {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure cards don't overflow their containers */
+.card {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Ensure grid doesn't cause overflow */
+.grid {
+  max-width: 100%;
+}

@@ -43,6 +43,12 @@
 		selectedTenant.set(tenant);
 		localStorage.setItem('selected_tenant', JSON.stringify(tenant));
 		showTenantModal = false;
+		showMobileNav = false; // Close mobile nav when switching tenant
+	}
+
+	function navigateAndCloseMobile(path: string) {
+		goto(path);
+		showMobileNav = false; // Close mobile nav when navigating
 	}
 
 	function logout() {
@@ -64,7 +70,7 @@
 
 <div class="drawer lg:drawer-open">
 	<input id="drawer-toggle" type="checkbox" class="drawer-toggle" bind:checked={showMobileNav} />
-	<div class="drawer-content flex flex-col">
+	<div class="drawer-content flex min-w-0 flex-col">
 		<!-- Mobile topbar (only visible on mobile) -->
 		<div class="navbar bg-base-100 border-base-300 border-b px-4 shadow-md lg:hidden">
 			<div class="flex-none">
@@ -85,8 +91,8 @@
 					</svg>
 				</label>
 			</div>
-			<div class="flex-1">
-				<h1 class="text-primary-content text-lg font-bold">COSMOS WATCHER</h1>
+			<div class="min-w-0 flex-1">
+				<h1 class="text-primary-content truncate text-lg font-bold">COSMOS WATCHER</h1>
 			</div>
 		</div>
 
@@ -135,21 +141,21 @@
 				<p class="mb-4 text-xs font-medium tracking-wide text-slate-400 uppercase">System Access</p>
 				<nav class="space-y-2">
 					<button
-						on:click={() => goto('/home')}
+						on:click={() => navigateAndCloseMobile('/home')}
 						class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 					>
 						<span class="text-blue-400">●</span>
 						<span class="font-medium">Dashboard</span>
 					</button>
 					<button
-						on:click={() => goto('/agents')}
+						on:click={() => navigateAndCloseMobile('/agents')}
 						class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 					>
 						<span class="text-blue-400">●</span>
 						<span class="font-medium">Observers</span>
 					</button>
 					<button
-						on:click={() => goto('/admin')}
+						on:click={() => navigateAndCloseMobile('/admin')}
 						class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 					>
 						<span class="text-blue-400">●</span>
@@ -157,7 +163,7 @@
 					</button>
 					{#if $isGlobalAdmin}
 						<button
-							on:click={() => goto('/singularity')}
+							on:click={() => navigateAndCloseMobile('/singularity')}
 							class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-slate-200 transition-colors hover:bg-slate-700/50 hover:text-white"
 						>
 							<span class="text-amber-400">●</span>

@@ -245,6 +245,53 @@
 		return metricSnapshots && metricSnapshots.length > 0 ? metricSnapshots[0] : null;
 	}
 
+	// Helper function to get enhanced network metrics
+	function getEnhancedNetworkMetrics(observer: ObserverWithMetrics): {
+		totalSent: number;
+		totalReceived: number;
+		interfaces: Array<{
+			interface: string;
+			sent?: number;
+			received?: number;
+		}>;
+	} {
+		const networkData = new Map<string, any>();
+		let totalSent = 0;
+		let totalReceived = 0;
+
+		// Process network sent metrics
+		if (observer.metrics['net_bytes_sent']) {
+			observer.metrics['net_bytes_sent'].forEach((snapshot) => {
+				const iface = snapshot.labels?.interface || 'unknown';
+				if (!networkData.has(iface)) {
+					networkData.set(iface, { interface: iface });
+				}
+				const ifaceData = networkData.get(iface);
+				ifaceData.sent = snapshot.value;
+				totalSent += snapshot.value;
+			});
+		}
+
+		// Process network received metrics
+		if (observer.metrics['net_bytes_recv']) {
+			observer.metrics['net_bytes_recv'].forEach((snapshot) => {
+				const iface = snapshot.labels?.interface || 'unknown';
+				if (!networkData.has(iface)) {
+					networkData.set(iface, { interface: iface });
+				}
+				const ifaceData = networkData.get(iface);
+				ifaceData.received = snapshot.value;
+				totalReceived += snapshot.value;
+			});
+		}
+
+		return {
+			totalSent,
+			totalReceived,
+			interfaces: Array.from(networkData.values())
+		};
+	}
+
 	// Helper function to check if metric exists
 	function hasMetric(observer: ObserverWithMetrics, metricName: string): boolean {
 		return observer.metrics[metricName] && observer.metrics[metricName].length > 0;
@@ -274,6 +321,23 @@
 					const diskMetrics = Object.keys(observer.metrics).filter((key) => key.includes('disk_'));
 					console.log('Disk metrics found:', diskMetrics);
 
+					// Find all network-related metrics
+					const networkMetrics = Object.keys(observer.metrics).filter((key) => key.includes('net_'));
+					console.log('Network metrics found:', networkMetrics);
+
+					// Log each network metric with its interface
+					networkMetrics.forEach((netMetric) => {
+						const metricSnapshots = observer.metrics[netMetric];
+						console.log(`  ${netMetric} (${metricSnapshots.length} snapshots):`);
+						metricSnapshots.forEach((snapshot, idx) => {
+							console.log(`    [${idx}]:`, {
+								value: snapshot.value,
+								interface: snapshot.labels?.interface || 'unknown',
+								labels: snapshot.labels
+							});
+						});
+					});
+
 					// Log each disk metric with its mount point
 					diskMetrics.forEach((diskMetric) => {
 						const metricSnapshots = observer.metrics[diskMetric];
@@ -289,6 +353,9 @@
 
 					// Show enhanced disk metrics
 					console.log('Enhanced disk metrics:', getEnhancedDiskMetrics(observer));
+
+					// Show enhanced network metrics
+					console.log('Enhanced network metrics:', getEnhancedNetworkMetrics(observer));
 
 					console.log('---');
 				});
@@ -313,7 +380,7 @@
 	}
 </script>
 
-<div class="space-y-6">
+<div class="max-w-full space-y-6 overflow-x-hidden">
 	{#if error}
 		<div class="alert alert-error">
 			<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -346,11 +413,11 @@
 	{:else}
 		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each observers as o}
-				<div class="card bg-base-100 h-full shadow-xl">
-					<div class="card-body flex h-full flex-col p-4">
+				<div class="card bg-base-100 h-full min-w-0 shadow-xl">
+					<div class="card-body flex h-full min-w-0 flex-col p-4">
 						<!-- Header with name, type, and status -->
 						<div class="mb-3 flex items-start justify-between">
-							<div class="min-w-0 flex-1">
+							<div class="min-w-0 flex-1 pr-2">
 								<h2 class="card-title mb-1 truncate text-base">{o.name}</h2>
 								<div class="flex items-center gap-2 text-xs">
 									<div class="tooltip tooltip-top" data-tip={getOnlineStatus(o.last_seen).tooltip}>
@@ -367,7 +434,7 @@
 										</div>
 									</div>
 									<span class="text-base-content/60">•</span>
-									<span class="text-base-content/70">
+									<span class="text-base-content/70 truncate">
 										{#if o.last_seen}
 											{formatRelativeTime(o.last_seen)}
 										{:else}
@@ -376,9 +443,9 @@
 									</span>
 								</div>
 							</div>
-							<div class="flex flex-col items-end gap-1">
+							<div class="flex flex-shrink-0 flex-col items-end gap-1">
 								<span class="badge badge-outline badge-xs">{o.type}</span>
-								<span class="text-base-content/60 font-mono text-xs">
+								<span class="text-base-content/60 truncate font-mono text-xs">
 									{formatUptime(o.last_uptime_seconds)}
 								</span>
 							</div>
@@ -469,21 +536,34 @@
 							{/if}
 
 							{#if hasMetric(o, 'net_bytes_sent')}
+								{@const networkMetrics = getEnhancedNetworkMetrics(o)}
 								<div class="bg-base-200 rounded-lg p-2">
 									<div class="mb-1 flex items-center gap-1">
 										<span class="text-sm">🌐</span>
 										<span class="text-xs font-medium">Network</span>
 									</div>
 									<div class="text-xs">
-										<div class="text-success">
-											↑ {formatBytes(getFirstMetricValue(o, 'net_bytes_sent').value)}
-										</div>
-										{#if hasMetric(o, 'net_bytes_recv')}
-											<div class="text-info">
-												↓ {formatBytes(getFirstMetricValue(o, 'net_bytes_recv').value)}
-											</div>
+										{#if networkMetrics.interfaces.length > 1}
+											<!-- Multiple interfaces - show totals -->
+											<div class="text-success">↑ {formatBytes(networkMetrics.totalSent)}</div>
+											<div class="text-info">↓ {formatBytes(networkMetrics.totalReceived)}</div>
+										{:else if networkMetrics.interfaces.length === 1}
+											<!-- Single interface - show interface data -->
+											{@const iface = networkMetrics.interfaces[0]}
+											<div class="text-success">↑ {formatBytes(iface.sent || 0)}</div>
+											<div class="text-info">↓ {formatBytes(iface.received || 0)}</div>
 										{:else}
-											<div class="text-base-content/50">↓ N/A</div>
+											<!-- Fallback to old method -->
+											<div class="text-success">
+												↑ {formatBytes(getFirstMetricValue(o, 'net_bytes_sent').value)}
+											</div>
+											{#if hasMetric(o, 'net_bytes_recv')}
+												<div class="text-info">
+													↓ {formatBytes(getFirstMetricValue(o, 'net_bytes_recv').value)}
+												</div>
+											{:else}
+												<div class="text-base-content/50">↓ N/A</div>
+											{/if}
 										{/if}
 									</div>
 								</div>

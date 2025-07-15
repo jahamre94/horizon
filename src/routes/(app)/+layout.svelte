@@ -33,7 +33,7 @@
 </script>
 
 <Sidebar>
-	<main class="bg-base-200 min-h-screen flex-1 p-6">
+	<main class="bg-base-200 min-h-screen flex-1 p-3 sm:p-6">
 		{@render children()}
 	</main>
 </Sidebar>

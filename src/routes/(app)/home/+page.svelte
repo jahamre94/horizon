@@ -52,7 +52,7 @@
 
 <div class="space-y-6">
 	<!-- Header with Dashboard Switcher -->
-	<div class="flex items-center justify-between">
+	<div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
 		<div>
 			<h1 class="text-base-content flex items-center gap-2 text-2xl font-bold">
 				<span>{currentDashboard?.icon}</span>
@@ -60,7 +60,7 @@
 			</h1>
 			<p class="text-base-content/70 mt-1 text-sm">{currentDashboard?.description}</p>
 		</div>
-		<div class="flex items-center gap-4">
+		<div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
 			<!-- Dashboard Switcher -->
 			<div class="tabs tabs-boxed">
 				{#each dashboards as dashboard}
