@@ -344,264 +344,253 @@
 			</div>
 		</div>
 	{:else}
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{#each observers as o}
-				<div class="card bg-base-100 shadow-xl">
-					<div class="card-body">
-						<div class="mb-4 flex items-start justify-between">
-							<div class="flex-1">
-								<h2 class="card-title mb-2 text-lg">{o.name}</h2>
-								<div class="flex items-start gap-4 text-xs">
-									<div class="flex flex-col items-center">
-										<div class="text-base-content/60 mb-1">Status</div>
-										<div
-											class="tooltip tooltip-top"
-											data-tip={getOnlineStatus(o.last_seen).tooltip}
-										>
-											<div class="flex items-center gap-1">
-												<div
-													class="h-2 w-2 rounded-full {getOnlineStatus(o.last_seen).color.replace(
-														'text-',
-														'bg-'
-													)}"
-												></div>
-												<span class={getOnlineStatus(o.last_seen).color}>
-													{getOnlineStatus(o.last_seen).text}
-												</span>
-											</div>
+				<div class="card bg-base-100 h-full shadow-xl">
+					<div class="card-body flex h-full flex-col p-4">
+						<!-- Header with name, type, and status -->
+						<div class="mb-3 flex items-start justify-between">
+							<div class="min-w-0 flex-1">
+								<h2 class="card-title mb-1 truncate text-base">{o.name}</h2>
+								<div class="flex items-center gap-2 text-xs">
+									<div class="tooltip tooltip-top" data-tip={getOnlineStatus(o.last_seen).tooltip}>
+										<div class="flex items-center gap-1">
+											<div
+												class="h-2 w-2 rounded-full {getOnlineStatus(o.last_seen).color.replace(
+													'text-',
+													'bg-'
+												)}"
+											></div>
+											<span class={getOnlineStatus(o.last_seen).color}>
+												{getOnlineStatus(o.last_seen).text}
+											</span>
 										</div>
 									</div>
-									<div class="flex flex-col items-center">
-										<div class="text-base-content/60 mb-1">Last seen</div>
-										<div class="text-base-content/70">
-											{#if o.last_seen}
-												{formatRelativeTime(o.last_seen)}
-											{:else}
-												Never
-											{/if}
-										</div>
-									</div>
-									<div class="flex flex-col items-center">
-										<div class="text-base-content/60 mb-1">Uptime</div>
-										<div class="text-base-content/70 font-mono">
-											{formatUptime(o.last_uptime_seconds)}
-										</div>
-									</div>
+									<span class="text-base-content/60">•</span>
+									<span class="text-base-content/70">
+										{#if o.last_seen}
+											{formatRelativeTime(o.last_seen)}
+										{:else}
+											Never
+										{/if}
+									</span>
 								</div>
 							</div>
-							<div class="text-right">
+							<div class="flex flex-col items-end gap-1">
 								<span class="badge badge-outline badge-xs">{o.type}</span>
+								<span class="text-base-content/60 font-mono text-xs">
+									{formatUptime(o.last_uptime_seconds)}
+								</span>
 							</div>
 						</div>
 
+						<!-- Tags (if any) -->
 						{#if Object.keys(o.tags).length > 0}
-							<div class="mb-4 flex flex-wrap gap-1.5">
+							<div class="mb-3 flex flex-wrap gap-1">
 								{#each Object.entries(o.tags) as [k, v]}
-									<span class="badge badge-sm badge-neutral">{k}={v}</span>
+									<span class="badge badge-xs badge-neutral">{k}={v}</span>
 								{/each}
 							</div>
 						{/if}
 
-						<div class="space-y-3">
-							<div class="text-base-content/80 text-sm font-medium">System Metrics</div>
+						<!-- Metrics Grid -->
+						<div class="mb-3 grid flex-1 grid-cols-2 gap-2">
 							{#if hasMetric(o, 'cpu_usage')}
-								<div class="bg-base-200 flex items-center justify-between rounded-lg p-3">
-									<div class="flex items-center gap-2">
-										<span class="text-lg">🔥</span>
-										<span class="text-sm font-medium">CPU Usage</span>
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-1 flex items-center gap-1">
+										<span class="text-sm">🔥</span>
+										<span class="text-xs font-medium">CPU</span>
 									</div>
-									<span class="badge {getMetricColor('cpu_usage')}">
+									<div
+										class="text-sm font-bold {getMetricColor('cpu_usage').replace(
+											'badge-',
+											'text-'
+										)}"
+									>
 										{getFirstMetricValue(o, 'cpu_usage').value.toFixed(1)}%
-									</span>
+									</div>
+								</div>
+							{:else}
+								<div class="bg-base-200 rounded-lg p-2 opacity-50">
+									<div class="mb-1 flex items-center gap-1">
+										<span class="text-sm">🔥</span>
+										<span class="text-xs font-medium">CPU</span>
+									</div>
+									<div class="text-base-content/50 text-sm font-bold">N/A</div>
 								</div>
 							{/if}
 
 							{#if hasMetric(o, 'mem_used') && hasMetric(o, 'mem_total')}
-								<div class="bg-base-200 rounded-lg p-3">
-									<div class="mb-2 flex items-center gap-2">
-										<span class="text-lg">💾</span>
-										<span class="text-sm font-medium">Memory</span>
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-1 flex items-center gap-1">
+										<span class="text-sm">💾</span>
+										<span class="text-xs font-medium">Memory</span>
 									</div>
-									<div class="space-y-2">
-										<div class="flex justify-between text-sm">
-											<span>Used / Total</span>
-											<span class="font-mono">
-												{formatMemory(getFirstMetricValue(o, 'mem_used').value)} / {formatMemory(
-													getFirstMetricValue(o, 'mem_total').value
-												)}
-											</span>
-										</div>
-										<div class="flex justify-between text-sm">
-											<span>Usage</span>
-											<span class="font-mono">
-												{(
-													(getFirstMetricValue(o, 'mem_used').value /
-														getFirstMetricValue(o, 'mem_total').value) *
-													100
-												).toFixed(1)}%
-											</span>
-										</div>
-										{#if hasMetric(o, 'mem_free')}
-											<div class="flex justify-between text-sm">
-												<span>Free</span>
-												<span class="badge badge-success badge-sm">
-													{formatMemory(getFirstMetricValue(o, 'mem_free').value)}
-												</span>
-											</div>
-										{/if}
+									<div class="text-sm font-bold">
+										{(
+											(getFirstMetricValue(o, 'mem_used').value /
+												getFirstMetricValue(o, 'mem_total').value) *
+											100
+										).toFixed(1)}%
+									</div>
+									<div class="text-base-content/60 text-xs">
+										{formatMemory(getFirstMetricValue(o, 'mem_used').value)}
 									</div>
 								</div>
-							{/if}
-
-							<!-- Enhanced Disk Usage Section to show all mount points with detailed info -->
-							{#if getEnhancedDiskMetrics(o).mounts.length > 0}
-								{@const enhancedDiskMetrics = getEnhancedDiskMetrics(o)}
-								<div class="bg-base-200 rounded-lg p-3">
-									<div class="mb-2 flex items-center gap-2">
-										<span class="text-lg">💿</span>
-										<span class="text-sm font-medium">Disk Usage</span>
+							{:else}
+								<div class="bg-base-200 rounded-lg p-2 opacity-50">
+									<div class="mb-1 flex items-center gap-1">
+										<span class="text-sm">💾</span>
+										<span class="text-xs font-medium">Memory</span>
 									</div>
-									<div class="space-y-2">
-										<!-- Per-mount disk usage -->
-										{#each enhancedDiskMetrics.mounts as diskInfo}
-											<div class="space-y-1">
-												<div class="flex justify-between text-sm">
-													<span class="font-mono">{diskInfo.mount}</span>
-													{#if diskInfo.calculatedPercent !== undefined}
-														<span
-															class="badge {getDiskUsageColor(diskInfo.calculatedPercent)
-																.badgeClass}"
-														>
-															{diskInfo.calculatedPercent.toFixed(1)}%
-														</span>
-													{:else if diskInfo.usedPercent !== undefined}
-														<span
-															class="badge {getDiskUsageColor(diskInfo.usedPercent).badgeClass}"
-														>
-															{diskInfo.usedPercent.toFixed(1)}%
-														</span>
-													{/if}
-												</div>
-
-												<!-- Progress bar for disk usage -->
-												{#if diskInfo.calculatedPercent !== undefined || diskInfo.usedPercent !== undefined}
-													{@const percentage =
-														diskInfo.calculatedPercent || diskInfo.usedPercent || 0}
-													<div class="bg-base-300 h-2 w-full rounded-full">
-														<div
-															class="{getDiskUsageColor(percentage)
-																.progressClass} h-2 rounded-full transition-all duration-300"
-															style="width: {Math.min(percentage, 100)}%"
-														></div>
-													</div>
-												{/if}
-
-												{#if diskInfo.totalBytes && diskInfo.usedBytes}
-													<div class="text-base-content/70 flex justify-between text-xs">
-														<span>
-															{formatBytes(diskInfo.usedBytes)} / {formatBytes(diskInfo.totalBytes)}
-														</span>
-														{#if diskInfo.freeBytes}
-															<span class="text-success">
-																{formatBytes(diskInfo.freeBytes)} free
-															</span>
-														{/if}
-													</div>
-												{/if}
-											</div>
-										{/each}
-
-										<!-- Total disk usage across all mounts -->
-										{#if enhancedDiskMetrics.totals.totalBytes > 0}
-											<div class="border-base-300 mt-2 border-t pt-2">
-												<div class="space-y-1">
-													<div class="flex justify-between text-sm font-semibold">
-														<span class="text-primary">Total (All Mounts)</span>
-														{#if enhancedDiskMetrics.totals.usedPercent !== undefined}
-															<span
-																class="badge {getDiskUsageColor(
-																	enhancedDiskMetrics.totals.usedPercent
-																).badgeClass}"
-															>
-																{enhancedDiskMetrics.totals.usedPercent.toFixed(1)}%
-															</span>
-														{/if}
-													</div>
-
-													<!-- Progress bar for total disk usage -->
-													{#if enhancedDiskMetrics.totals.usedPercent !== undefined}
-														<div class="bg-base-300 h-2 w-full rounded-full">
-															<div
-																class="{getDiskUsageColor(enhancedDiskMetrics.totals.usedPercent)
-																	.progressClass} h-2 rounded-full transition-all duration-300"
-																style="width: {Math.min(
-																	enhancedDiskMetrics.totals.usedPercent,
-																	100
-																)}%"
-															></div>
-														</div>
-													{/if}
-
-													<div class="text-base-content/70 flex justify-between text-xs">
-														<span>
-															{formatBytes(enhancedDiskMetrics.totals.usedBytes)} / {formatBytes(
-																enhancedDiskMetrics.totals.totalBytes
-															)}
-														</span>
-														{#if enhancedDiskMetrics.totals.freeBytes}
-															<span class="text-success">
-																{formatBytes(enhancedDiskMetrics.totals.freeBytes)} free
-															</span>
-														{/if}
-													</div>
-												</div>
-											</div>
-										{/if}
-									</div>
-								</div>
-							{/if}
-
-							{#if hasMetric(o, 'net_bytes_sent')}
-								<div class="bg-base-200 rounded-lg p-3">
-									<div class="mb-2 flex items-center gap-2">
-										<span class="text-lg">🌐</span>
-										<span class="text-sm font-medium">Network</span>
-									</div>
-									<div class="space-y-2">
-										<div class="flex justify-between text-sm">
-											<span>Sent</span>
-											<span class="badge badge-secondary badge-sm">
-												{formatBytes(getFirstMetricValue(o, 'net_bytes_sent').value)}
-											</span>
-										</div>
-										{#if hasMetric(o, 'net_bytes_recv')}
-											<div class="flex justify-between text-sm">
-												<span>Received</span>
-												<span class="badge badge-secondary badge-sm">
-													{formatBytes(getFirstMetricValue(o, 'net_bytes_recv').value)}
-												</span>
-											</div>
-										{/if}
-									</div>
+									<div class="text-base-content/50 text-sm font-bold">N/A</div>
+									<div class="text-base-content/50 text-xs">-</div>
 								</div>
 							{/if}
 
 							{#if hasMetric(o, 'temp_celsius')}
-								<div class="bg-base-200 flex items-center justify-between rounded-lg p-3">
-									<div class="flex items-center gap-2">
-										<span class="text-lg">🌡️</span>
-										<span class="text-sm font-medium">Temperature</span>
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-1 flex items-center gap-1">
+										<span class="text-sm">🌡️</span>
+										<span class="text-xs font-medium">Temp</span>
 									</div>
-									<span class="badge badge-accent">
+									<div class="text-accent text-sm font-bold">
 										{getFirstMetricValue(o, 'temp_celsius').value.toFixed(1)}°C
-									</span>
+									</div>
+								</div>
+							{:else}
+								<div class="bg-base-200 rounded-lg p-2 opacity-50">
+									<div class="mb-1 flex items-center gap-1">
+										<span class="text-sm">🌡️</span>
+										<span class="text-xs font-medium">Temp</span>
+									</div>
+									<div class="text-base-content/50 text-sm font-bold">N/A</div>
+								</div>
+							{/if}
+
+							{#if hasMetric(o, 'net_bytes_sent')}
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-1 flex items-center gap-1">
+										<span class="text-sm">🌐</span>
+										<span class="text-xs font-medium">Network</span>
+									</div>
+									<div class="text-xs">
+										<div class="text-success">
+											↑ {formatBytes(getFirstMetricValue(o, 'net_bytes_sent').value)}
+										</div>
+										{#if hasMetric(o, 'net_bytes_recv')}
+											<div class="text-info">
+												↓ {formatBytes(getFirstMetricValue(o, 'net_bytes_recv').value)}
+											</div>
+										{:else}
+											<div class="text-base-content/50">↓ N/A</div>
+										{/if}
+									</div>
+								</div>
+							{:else}
+								<div class="bg-base-200 rounded-lg p-2 opacity-50">
+									<div class="mb-1 flex items-center gap-1">
+										<span class="text-sm">🌐</span>
+										<span class="text-xs font-medium">Network</span>
+									</div>
+									<div class="text-xs">
+										<div class="text-base-content/50">↑ N/A</div>
+										<div class="text-base-content/50">↓ N/A</div>
+									</div>
+								</div>
+							{/if}
+						</div>
+
+						<!-- Disk Usage (simplified) -->
+						<div class="mb-3">
+							{#if getEnhancedDiskMetrics(o).mounts.length > 0}
+								{@const enhancedDiskMetrics = getEnhancedDiskMetrics(o)}
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-2 flex items-center gap-1">
+										<span class="text-sm">💿</span>
+										<span class="text-xs font-medium">Disk Usage</span>
+									</div>
+
+									<!-- Show only total if multiple mounts, otherwise show main mount -->
+									{#if enhancedDiskMetrics.mounts.length > 1 && enhancedDiskMetrics.totals.totalBytes > 0}
+										<div class="space-y-1">
+											<div class="flex items-center justify-between">
+												<span class="text-xs"
+													>Total ({enhancedDiskMetrics.mounts.length} mounts)</span
+												>
+												<span
+													class="text-xs font-bold {getDiskUsageColor(
+														enhancedDiskMetrics.totals.usedPercent
+													).badgeClass.replace('badge-', 'text-')}"
+												>
+													{enhancedDiskMetrics.totals.usedPercent.toFixed(1)}%
+												</span>
+											</div>
+											<div class="bg-base-300 h-1.5 w-full rounded-full">
+												<div
+													class="{getDiskUsageColor(enhancedDiskMetrics.totals.usedPercent)
+														.progressClass} h-1.5 rounded-full transition-all duration-300"
+													style="width: {Math.min(enhancedDiskMetrics.totals.usedPercent, 100)}%"
+												></div>
+											</div>
+											<div class="text-base-content/60 text-xs">
+												{formatBytes(enhancedDiskMetrics.totals.usedBytes)} / {formatBytes(
+													enhancedDiskMetrics.totals.totalBytes
+												)}
+											</div>
+										</div>
+									{:else if enhancedDiskMetrics.mounts.length === 1}
+										{@const diskInfo = enhancedDiskMetrics.mounts[0]}
+										{@const percentage = diskInfo.calculatedPercent || diskInfo.usedPercent || 0}
+										<div class="space-y-1">
+											<div class="flex items-center justify-between">
+												<span class="font-mono text-xs">{diskInfo.mount}</span>
+												<span
+													class="text-xs font-bold {getDiskUsageColor(
+														percentage
+													).badgeClass.replace('badge-', 'text-')}"
+												>
+													{percentage.toFixed(1)}%
+												</span>
+											</div>
+											<div class="bg-base-300 h-1.5 w-full rounded-full">
+												<div
+													class="{getDiskUsageColor(percentage)
+														.progressClass} h-1.5 rounded-full transition-all duration-300"
+													style="width: {Math.min(percentage, 100)}%"
+												></div>
+											</div>
+											{#if diskInfo.totalBytes && diskInfo.usedBytes}
+												<div class="text-base-content/60 text-xs">
+													{formatBytes(diskInfo.usedBytes)} / {formatBytes(diskInfo.totalBytes)}
+												</div>
+											{/if}
+										</div>
+									{/if}
+								</div>
+							{:else}
+								<div class="bg-base-200 rounded-lg p-2 opacity-50">
+									<div class="mb-2 flex items-center gap-1">
+										<span class="text-sm">💿</span>
+										<span class="text-xs font-medium">Disk Usage</span>
+									</div>
+									<div class="space-y-1">
+										<div class="flex items-center justify-between">
+											<span class="text-xs">N/A</span>
+											<span class="text-base-content/50 text-xs font-bold">N/A</span>
+										</div>
+										<div class="bg-base-300 h-1.5 w-full rounded-full">
+											<div class="bg-base-content/20 h-1.5 rounded-full" style="width: 0%"></div>
+										</div>
+										<div class="text-base-content/50 text-xs">No disk data</div>
+									</div>
 								</div>
 							{/if}
 						</div>
 
 						<!-- View Details Button -->
-						<div class="card-actions mt-4 justify-end">
-							<button class="btn btn-primary btn-sm" on:click={() => goto(`/home/${o.id}`)}>
+						<div class="mt-auto">
+							<button class="btn btn-primary btn-sm w-full" on:click={() => goto(`/home/${o.id}`)}>
 								View Details
 							</button>
 						</div>
