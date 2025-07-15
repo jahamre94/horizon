@@ -18,7 +18,7 @@
 				value: number;
 				metric_name: string;
 				labels?: Record<string, any>;
-			}
+			}[]
 		>;
 	}
 
@@ -96,6 +96,21 @@
 		return map[name] || 'badge-neutral';
 	}
 
+	// Helper function to get disk usage color based on percentage
+	function getDiskUsageColor(percentage: number): { badgeClass: string; progressClass: string } {
+		if (percentage < 50) {
+			return { badgeClass: 'badge-success', progressClass: 'bg-success' };
+		} else if (percentage < 70) {
+			return { badgeClass: 'badge-info', progressClass: 'bg-info' };
+		} else if (percentage < 85) {
+			return { badgeClass: 'badge-warning', progressClass: 'bg-warning' };
+		} else if (percentage < 95) {
+			return { badgeClass: 'badge-error', progressClass: 'bg-error' };
+		} else {
+			return { badgeClass: 'badge-error', progressClass: 'bg-error' };
+		}
+	}
+
 	function getOnlineStatus(lastSeen?: string): { color: string; text: string; tooltip: string } {
 		if (!lastSeen) {
 			return {
@@ -131,6 +146,110 @@
 		}
 	}
 
+	function getDiskMetrics(
+		observer: ObserverWithMetrics
+	): Array<{ key: string; metric: any; mount: string }> {
+		// Find all disk_used_percent metrics
+		const diskMetrics = Object.keys(observer.metrics)
+			.filter((key) => key.includes('disk_used_percent'))
+			.flatMap((key) => {
+				const metricSnapshots = observer.metrics[key];
+				return metricSnapshots.map((snapshot) => ({
+					key,
+					metric: snapshot,
+					mount: snapshot.labels?.mount || '/'
+				}));
+			});
+
+		console.log(`getDiskMetrics for ${observer.name}:`, diskMetrics);
+		return diskMetrics;
+	}
+
+	// Enhanced function to get disk metrics with total and used bytes
+	function getEnhancedDiskMetrics(observer: ObserverWithMetrics): {
+		mounts: Array<{
+			mount: string;
+			usedPercent?: number;
+			calculatedPercent?: number;
+			totalBytes?: number;
+			usedBytes?: number;
+			freeBytes?: number;
+		}>;
+		totals: {
+			totalBytes: number;
+			usedBytes: number;
+			freeBytes: number;
+			usedPercent: number;
+		};
+	} {
+		const diskData = new Map<string, any>();
+
+		// Process all disk-related metrics
+		['disk_used_percent', 'disk_total_bytes', 'disk_used_bytes', 'disk_free_bytes'].forEach(
+			(metricName) => {
+				if (observer.metrics[metricName]) {
+					observer.metrics[metricName].forEach((snapshot) => {
+						const mount = snapshot.labels?.mount || '/';
+						if (!diskData.has(mount)) {
+							diskData.set(mount, { mount });
+						}
+
+						const diskInfo = diskData.get(mount);
+						if (metricName === 'disk_used_percent') {
+							diskInfo.usedPercent = snapshot.value;
+						} else if (metricName === 'disk_total_bytes') {
+							diskInfo.totalBytes = snapshot.value;
+						} else if (metricName === 'disk_used_bytes') {
+							diskInfo.usedBytes = snapshot.value;
+						} else if (metricName === 'disk_free_bytes') {
+							diskInfo.freeBytes = snapshot.value;
+						}
+					});
+				}
+			}
+		);
+
+		// Calculate accurate percentages and totals
+		const mounts = Array.from(diskData.values());
+		let totalBytes = 0;
+		let totalUsedBytes = 0;
+		let totalFreeBytes = 0;
+
+		mounts.forEach((mount) => {
+			// Calculate accurate percentage if we have both used and total bytes
+			if (mount.usedBytes !== undefined && mount.totalBytes !== undefined && mount.totalBytes > 0) {
+				mount.calculatedPercent = (mount.usedBytes / mount.totalBytes) * 100;
+			}
+
+			// Add to totals
+			if (mount.totalBytes) totalBytes += mount.totalBytes;
+			if (mount.usedBytes) totalUsedBytes += mount.usedBytes;
+			if (mount.freeBytes) totalFreeBytes += mount.freeBytes;
+		});
+
+		const totals = {
+			totalBytes,
+			usedBytes: totalUsedBytes,
+			freeBytes: totalFreeBytes,
+			usedPercent: totalBytes > 0 ? (totalUsedBytes / totalBytes) * 100 : 0
+		};
+
+		const result = { mounts, totals };
+		console.log(`getEnhancedDiskMetrics for ${observer.name}:`, result);
+		return result;
+	}
+
+	// Helper function to get first metric value (for single-value metrics)
+	function getFirstMetricValue(observer: ObserverWithMetrics, metricName: string): any | null {
+		const metricSnapshots = observer.metrics[metricName];
+		return metricSnapshots && metricSnapshots.length > 0 ? metricSnapshots[0] : null;
+	}
+
+	// Helper function to check if metric exists
+	function hasMetric(observer: ObserverWithMetrics, metricName: string): boolean {
+		return observer.metrics[metricName] && observer.metrics[metricName].length > 0;
+	}
+
 	async function fetchObservers() {
 		loading = true;
 		error = '';
@@ -138,6 +257,41 @@
 			const res = await apiGet<ObserverWithMetrics[]>('/api/observer/dashboard');
 			if (res.success) {
 				observers = res.data;
+
+				// Log detailed metrics structure for debugging
+				console.log('=== Observer Dashboard Debug ===');
+				observers.forEach((observer, index) => {
+					console.log(`Observer ${index + 1}: ${observer.name}`);
+					console.log('All metrics keys:', Object.keys(observer.metrics));
+
+					// Log metric counts
+					Object.keys(observer.metrics).forEach((metricName) => {
+						const count = observer.metrics[metricName].length;
+						console.log(`  ${metricName}: ${count} snapshot(s)`);
+					});
+
+					// Find all disk-related metrics
+					const diskMetrics = Object.keys(observer.metrics).filter((key) => key.includes('disk_'));
+					console.log('Disk metrics found:', diskMetrics);
+
+					// Log each disk metric with its mount point
+					diskMetrics.forEach((diskMetric) => {
+						const metricSnapshots = observer.metrics[diskMetric];
+						console.log(`  ${diskMetric} (${metricSnapshots.length} snapshots):`);
+						metricSnapshots.forEach((snapshot, idx) => {
+							console.log(`    [${idx}]:`, {
+								value: snapshot.value,
+								mount: snapshot.labels?.mount || 'unknown',
+								labels: snapshot.labels
+							});
+						});
+					});
+
+					// Show enhanced disk metrics
+					console.log('Enhanced disk metrics:', getEnhancedDiskMetrics(observer));
+
+					console.log('---');
+				});
 			} else {
 				error = res.error;
 			}
@@ -250,19 +404,19 @@
 
 						<div class="space-y-3">
 							<div class="text-base-content/80 text-sm font-medium">System Metrics</div>
-							{#if o.metrics.cpu_usage}
+							{#if hasMetric(o, 'cpu_usage')}
 								<div class="bg-base-200 flex items-center justify-between rounded-lg p-3">
 									<div class="flex items-center gap-2">
 										<span class="text-lg">🔥</span>
 										<span class="text-sm font-medium">CPU Usage</span>
 									</div>
 									<span class="badge {getMetricColor('cpu_usage')}">
-										{o.metrics.cpu_usage.value.toFixed(1)}%
+										{getFirstMetricValue(o, 'cpu_usage').value.toFixed(1)}%
 									</span>
 								</div>
 							{/if}
 
-							{#if o.metrics.mem_used && o.metrics.mem_total}
+							{#if hasMetric(o, 'mem_used') && hasMetric(o, 'mem_total')}
 								<div class="bg-base-200 rounded-lg p-3">
 									<div class="mb-2 flex items-center gap-2">
 										<span class="text-lg">💾</span>
@@ -272,22 +426,26 @@
 										<div class="flex justify-between text-sm">
 											<span>Used / Total</span>
 											<span class="font-mono">
-												{formatMemory(o.metrics.mem_used.value)} / {formatMemory(
-													o.metrics.mem_total.value
+												{formatMemory(getFirstMetricValue(o, 'mem_used').value)} / {formatMemory(
+													getFirstMetricValue(o, 'mem_total').value
 												)}
 											</span>
 										</div>
 										<div class="flex justify-between text-sm">
 											<span>Usage</span>
 											<span class="font-mono">
-												{((o.metrics.mem_used.value / o.metrics.mem_total.value) * 100).toFixed(1)}%
+												{(
+													(getFirstMetricValue(o, 'mem_used').value /
+														getFirstMetricValue(o, 'mem_total').value) *
+													100
+												).toFixed(1)}%
 											</span>
 										</div>
-										{#if o.metrics.mem_free}
+										{#if hasMetric(o, 'mem_free')}
 											<div class="flex justify-between text-sm">
 												<span>Free</span>
 												<span class="badge badge-success badge-sm">
-													{formatMemory(o.metrics.mem_free.value)}
+													{formatMemory(getFirstMetricValue(o, 'mem_free').value)}
 												</span>
 											</div>
 										{/if}
@@ -295,22 +453,115 @@
 								</div>
 							{/if}
 
-							{#if o.metrics.disk_used_percent}
+							<!-- Enhanced Disk Usage Section to show all mount points with detailed info -->
+							{#if getEnhancedDiskMetrics(o).mounts.length > 0}
+								{@const enhancedDiskMetrics = getEnhancedDiskMetrics(o)}
 								<div class="bg-base-200 rounded-lg p-3">
 									<div class="mb-2 flex items-center gap-2">
 										<span class="text-lg">💿</span>
 										<span class="text-sm font-medium">Disk Usage</span>
 									</div>
-									<div class="flex justify-between text-sm">
-										<span>{o.metrics.disk_used_percent.labels?.mount || '/'}</span>
-										<span class="badge {getMetricColor('disk_used_percent')}">
-											{o.metrics.disk_used_percent.value.toFixed(1)}%
-										</span>
+									<div class="space-y-2">
+										<!-- Per-mount disk usage -->
+										{#each enhancedDiskMetrics.mounts as diskInfo}
+											<div class="space-y-1">
+												<div class="flex justify-between text-sm">
+													<span class="font-mono">{diskInfo.mount}</span>
+													{#if diskInfo.calculatedPercent !== undefined}
+														<span
+															class="badge {getDiskUsageColor(diskInfo.calculatedPercent)
+																.badgeClass}"
+														>
+															{diskInfo.calculatedPercent.toFixed(1)}%
+														</span>
+													{:else if diskInfo.usedPercent !== undefined}
+														<span
+															class="badge {getDiskUsageColor(diskInfo.usedPercent).badgeClass}"
+														>
+															{diskInfo.usedPercent.toFixed(1)}%
+														</span>
+													{/if}
+												</div>
+
+												<!-- Progress bar for disk usage -->
+												{#if diskInfo.calculatedPercent !== undefined || diskInfo.usedPercent !== undefined}
+													{@const percentage =
+														diskInfo.calculatedPercent || diskInfo.usedPercent || 0}
+													<div class="bg-base-300 h-2 w-full rounded-full">
+														<div
+															class="{getDiskUsageColor(percentage)
+																.progressClass} h-2 rounded-full transition-all duration-300"
+															style="width: {Math.min(percentage, 100)}%"
+														></div>
+													</div>
+												{/if}
+
+												{#if diskInfo.totalBytes && diskInfo.usedBytes}
+													<div class="text-base-content/70 flex justify-between text-xs">
+														<span>
+															{formatBytes(diskInfo.usedBytes)} / {formatBytes(diskInfo.totalBytes)}
+														</span>
+														{#if diskInfo.freeBytes}
+															<span class="text-success">
+																{formatBytes(diskInfo.freeBytes)} free
+															</span>
+														{/if}
+													</div>
+												{/if}
+											</div>
+										{/each}
+
+										<!-- Total disk usage across all mounts -->
+										{#if enhancedDiskMetrics.totals.totalBytes > 0}
+											<div class="border-base-300 mt-2 border-t pt-2">
+												<div class="space-y-1">
+													<div class="flex justify-between text-sm font-semibold">
+														<span class="text-primary">Total (All Mounts)</span>
+														{#if enhancedDiskMetrics.totals.usedPercent !== undefined}
+															<span
+																class="badge {getDiskUsageColor(
+																	enhancedDiskMetrics.totals.usedPercent
+																).badgeClass}"
+															>
+																{enhancedDiskMetrics.totals.usedPercent.toFixed(1)}%
+															</span>
+														{/if}
+													</div>
+
+													<!-- Progress bar for total disk usage -->
+													{#if enhancedDiskMetrics.totals.usedPercent !== undefined}
+														<div class="bg-base-300 h-2 w-full rounded-full">
+															<div
+																class="{getDiskUsageColor(enhancedDiskMetrics.totals.usedPercent)
+																	.progressClass} h-2 rounded-full transition-all duration-300"
+																style="width: {Math.min(
+																	enhancedDiskMetrics.totals.usedPercent,
+																	100
+																)}%"
+															></div>
+														</div>
+													{/if}
+
+													<div class="text-base-content/70 flex justify-between text-xs">
+														<span>
+															{formatBytes(enhancedDiskMetrics.totals.usedBytes)} / {formatBytes(
+																enhancedDiskMetrics.totals.totalBytes
+															)}
+														</span>
+														{#if enhancedDiskMetrics.totals.freeBytes}
+															<span class="text-success">
+																{formatBytes(enhancedDiskMetrics.totals.freeBytes)} free
+															</span>
+														{/if}
+													</div>
+												</div>
+											</div>
+										{/if}
 									</div>
 								</div>
 							{/if}
 
-							{#if o.metrics.net_bytes_sent}
+							{#if hasMetric(o, 'net_bytes_sent')}
 								<div class="bg-base-200 rounded-lg p-3">
 									<div class="mb-2 flex items-center gap-2">
 										<span class="text-lg">🌐</span>
@@ -320,14 +571,14 @@
 										<div class="flex justify-between text-sm">
 											<span>Sent</span>
 											<span class="badge badge-secondary badge-sm">
-												{formatBytes(o.metrics.net_bytes_sent.value)}
+												{formatBytes(getFirstMetricValue(o, 'net_bytes_sent').value)}
 											</span>
 										</div>
-										{#if o.metrics.net_bytes_recv}
+										{#if hasMetric(o, 'net_bytes_recv')}
 											<div class="flex justify-between text-sm">
 												<span>Received</span>
 												<span class="badge badge-secondary badge-sm">
-													{formatBytes(o.metrics.net_bytes_recv.value)}
+													{formatBytes(getFirstMetricValue(o, 'net_bytes_recv').value)}
 												</span>
 											</div>
 										{/if}
@@ -335,14 +586,14 @@
 								</div>
 							{/if}
 
-							{#if o.metrics.temp_celsius}
+							{#if hasMetric(o, 'temp_celsius')}
 								<div class="bg-base-200 flex items-center justify-between rounded-lg p-3">
 									<div class="flex items-center gap-2">
 										<span class="text-lg">🌡️</span>
 										<span class="text-sm font-medium">Temperature</span>
 									</div>
 									<span class="badge badge-accent">
-										{o.metrics.temp_celsius.value.toFixed(1)}°C
+										{getFirstMetricValue(o, 'temp_celsius').value.toFixed(1)}°C
 									</span>
 								</div>
 							{/if}
