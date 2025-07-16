@@ -297,6 +297,40 @@
 		return observer.metrics[metricName] && observer.metrics[metricName].length > 0;
 	}
 
+	// Helper function to get Docker container metrics
+	function getDockerMetrics(observer: ObserverWithMetrics): {
+		running?: number;
+		exited?: number;
+		created?: number;
+		total?: number;
+		hasAnyMetrics: boolean;
+	} {
+		const metrics = {
+			running: hasMetric(observer, 'docker_containers_running')
+				? getFirstMetricValue(observer, 'docker_containers_running').value
+				: undefined,
+			exited: hasMetric(observer, 'docker_containers_exited')
+				? getFirstMetricValue(observer, 'docker_containers_exited').value
+				: undefined,
+			created: hasMetric(observer, 'docker_containers_created')
+				? getFirstMetricValue(observer, 'docker_containers_created').value
+				: undefined,
+			total: hasMetric(observer, 'docker_containers_total')
+				? getFirstMetricValue(observer, 'docker_containers_total').value
+				: undefined,
+			hasAnyMetrics: false
+		};
+
+		// Check if any Docker metrics exist
+		metrics.hasAnyMetrics =
+			metrics.running !== undefined ||
+			metrics.exited !== undefined ||
+			metrics.created !== undefined ||
+			metrics.total !== undefined;
+
+		return metrics;
+	}
+
 	async function fetchObservers() {
 		loading = true;
 		error = '';
@@ -322,7 +356,9 @@
 					console.log('Disk metrics found:', diskMetrics);
 
 					// Find all network-related metrics
-					const networkMetrics = Object.keys(observer.metrics).filter((key) => key.includes('net_'));
+					const networkMetrics = Object.keys(observer.metrics).filter((key) =>
+						key.includes('net_')
+					);
 					console.log('Network metrics found:', networkMetrics);
 
 					// Log each network metric with its interface
@@ -457,6 +493,47 @@
 								{#each Object.entries(o.tags) as [k, v]}
 									<span class="badge badge-xs badge-neutral">{k}={v}</span>
 								{/each}
+							</div>
+						{/if}
+
+						<!-- Docker Containers -->
+						{#if getDockerMetrics(o).hasAnyMetrics}
+							{@const dockerMetrics = getDockerMetrics(o)}
+							<div class="mb-3">
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-2 flex items-center gap-1">
+										<span class="text-sm">🐳</span>
+										<span class="text-xs font-medium">Docker Containers</span>
+									</div>
+									<div class="space-y-1 text-xs">
+										<div class="flex flex-wrap gap-2">
+											{#if dockerMetrics.running !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-success">🟢</span>
+													<span class="text-success">Running: {dockerMetrics.running}</span>
+												</span>
+											{/if}
+											{#if dockerMetrics.exited !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-base-content/60">⚫</span>
+													<span class="text-base-content/60">Exited: {dockerMetrics.exited}</span>
+												</span>
+											{/if}
+											{#if dockerMetrics.created !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-info">🧱</span>
+													<span class="text-info">Created: {dockerMetrics.created}</span>
+												</span>
+											{/if}
+											{#if dockerMetrics.total !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-base-content/80">📊</span>
+													<span class="text-base-content/80">Total: {dockerMetrics.total}</span>
+												</span>
+											{/if}
+										</div>
+									</div>
+								</div>
 							</div>
 						{/if}
 

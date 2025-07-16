@@ -1,0 +1,2860 @@
+{
+    "id": "767a21c5-af0c-44d9-8634-8823ea70fbc9",
+    "name": "mais-1",
+    "type": "generic",
+    "tags": {
+        "tag": "1"
+    },
+    "last_seen": "2025-07-15T13:20:49.634642Z",
+    "last_uptime_seconds": 0,
+    "metrics": {
+        "cpu_usage": [
+            {
+                "time": "2025-07-15T13:20:40.04419Z",
+                "value": 20.87682672217584,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:20:30.042904Z",
+                "value": 19.16666666735384,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:20:20.043945Z",
+                "value": 15.800415800425863,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:20:10.041971Z",
+                "value": 18.580375783028146,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:20:00.046103Z",
+                "value": 13.778705637316563,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:19:50.042289Z",
+                "value": 20.71129706695171,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:19:40.041581Z",
+                "value": 17.954070980779576,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:19:30.052661Z",
+                "value": 10.901467505589013,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:19:20.051771Z",
+                "value": 15.352697097450068,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:19:10.041236Z",
+                "value": 21.848739492715506,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T13:19:00.043973Z",
+                "value": 35.41666666777827,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T12:21:56.347901Z",
+                "value": 13.636363639206234,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T12:21:46.347499Z",
+                "value": 13.305613303972951,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T12:21:36.348406Z",
+                "value": 21.20582120838237,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T12:21:26.346525Z",
+                "value": 18.01242236228444,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T12:21:16.347861Z",
+                "value": 17.190775680200737,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T12:21:06.347744Z",
+                "value": 17.355371898282023,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            },
+            {
+                "time": "2025-07-15T12:20:56.347582Z",
+                "value": 12.317327763571573,
+                "labels": null,
+                "metric_name": "cpu_usage"
+            }
+        ],
+        "disk_used_percent": [
+            {
+                "time": "2025-07-15T13:19:49.441538Z",
+                "value": 81.69198387070863,
+                "labels": {
+                    "mount": "/System/Volumes/Update/mnt1"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441526Z",
+                "value": 97.49451858535969,
+                "labels": {
+                    "mount": "/Library/Developer/CoreSimulator/Volumes/iOS_22E238"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441428Z",
+                "value": 97.1130413216011,
+                "labels": {
+                    "mount": "/Library/Developer/CoreSimulator/Cryptex/Images/bundle/SimRuntimeBundle-D127C9E5-400D-46E6-BEB3-A85824261F22"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441315Z",
+                "value": 37.38175292913988,
+                "labels": {
+                    "mount": "/System/Volumes/Update/SFR/mnt1"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441226Z",
+                "value": 0,
+                "labels": {
+                    "mount": "/System/Volumes/Data/home"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441218Z",
+                "value": 81.69198387070863,
+                "labels": {
+                    "mount": "/System/Volumes/Data"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441176Z",
+                "value": 3.7273437499999997,
+                "labels": {
+                    "mount": "/System/Volumes/Hardware"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441167Z",
+                "value": 3.7273437499999997,
+                "labels": {
+                    "mount": "/System/Volumes/iSCPreboot"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441154Z",
+                "value": 3.7273437499999997,
+                "labels": {
+                    "mount": "/System/Volumes/xarts"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441146Z",
+                "value": 81.69198387070863,
+                "labels": {
+                    "mount": "/System/Volumes/Update"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441132Z",
+                "value": 81.69198387070863,
+                "labels": {
+                    "mount": "/System/Volumes/Preboot"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441123Z",
+                "value": 81.69198387070863,
+                "labels": {
+                    "mount": "/System/Volumes/VM"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441109Z",
+                "value": 100,
+                "labels": {
+                    "mount": "/dev"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.441082Z",
+                "value": 81.69198387070863,
+                "labels": {
+                    "mount": "/"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746839Z",
+                "value": 82.1849572706704,
+                "labels": {
+                    "mount": "/System/Volumes/Update/mnt1"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746825Z",
+                "value": 97.49451858535969,
+                "labels": {
+                    "mount": "/Library/Developer/CoreSimulator/Volumes/iOS_22E238"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.74679Z",
+                "value": 97.1130413216011,
+                "labels": {
+                    "mount": "/Library/Developer/CoreSimulator/Cryptex/Images/bundle/SimRuntimeBundle-D127C9E5-400D-46E6-BEB3-A85824261F22"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746762Z",
+                "value": 37.38175292913988,
+                "labels": {
+                    "mount": "/System/Volumes/Update/SFR/mnt1"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746744Z",
+                "value": 0,
+                "labels": {
+                    "mount": "/System/Volumes/Data/home"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746728Z",
+                "value": 82.1849572706704,
+                "labels": {
+                    "mount": "/System/Volumes/Data"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746714Z",
+                "value": 3.7273437499999997,
+                "labels": {
+                    "mount": "/System/Volumes/Hardware"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.7467Z",
+                "value": 3.7273437499999997,
+                "labels": {
+                    "mount": "/System/Volumes/iSCPreboot"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746685Z",
+                "value": 3.7273437499999997,
+                "labels": {
+                    "mount": "/System/Volumes/xarts"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746662Z",
+                "value": 82.1849572706704,
+                "labels": {
+                    "mount": "/System/Volumes/Update"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746649Z",
+                "value": 82.1849572706704,
+                "labels": {
+                    "mount": "/System/Volumes/Preboot"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.74663Z",
+                "value": 82.1849572706704,
+                "labels": {
+                    "mount": "/System/Volumes/VM"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746602Z",
+                "value": 100,
+                "labels": {
+                    "mount": "/dev"
+                },
+                "metric_name": "disk_used_percent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746493Z",
+                "value": 82.1849572706704,
+                "labels": {
+                    "mount": "/"
+                },
+                "metric_name": "disk_used_percent"
+            }
+        ],
+        "mem_free": [
+            {
+                "time": "2025-07-15T13:20:49.441405Z",
+                "value": 3342.625,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:20:39.441566Z",
+                "value": 3503.5625,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:20:29.442141Z",
+                "value": 3580.453125,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:20:19.442698Z",
+                "value": 3631.03125,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:20:09.440925Z",
+                "value": 3507.625,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:19:59.44483Z",
+                "value": 3616.546875,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:19:49.440746Z",
+                "value": 3251.71875,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:19:39.440411Z",
+                "value": 2941.078125,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:19:29.451325Z",
+                "value": 3538.40625,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:19:19.440359Z",
+                "value": 3569.9375,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:19:09.440306Z",
+                "value": 3501.921875,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T13:18:59.442529Z",
+                "value": 3070.140625,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T12:21:55.745757Z",
+                "value": 3118.5625,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T12:21:45.745216Z",
+                "value": 3076.71875,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746185Z",
+                "value": 3128.125,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T12:21:25.745158Z",
+                "value": 3139.5,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T12:21:15.745696Z",
+                "value": 3138.765625,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T12:21:05.743817Z",
+                "value": 3173.578125,
+                "labels": null,
+                "metric_name": "mem_free"
+            },
+            {
+                "time": "2025-07-15T12:20:55.744947Z",
+                "value": 3131.96875,
+                "labels": null,
+                "metric_name": "mem_free"
+            }
+        ],
+        "mem_total": [
+            {
+                "time": "2025-07-15T13:20:49.441398Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:20:39.441556Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:20:29.442133Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:20:19.442696Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:20:09.440916Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:19:59.444827Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:19:49.440735Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:19:39.440401Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:19:29.451321Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:19:19.440316Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:19:09.440276Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T13:18:59.442525Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T12:21:55.745647Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T12:21:45.745116Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746171Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T12:21:25.745148Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T12:21:15.745692Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T12:21:05.743811Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            },
+            {
+                "time": "2025-07-15T12:20:55.744902Z",
+                "value": 16384,
+                "labels": null,
+                "metric_name": "mem_total"
+            }
+        ],
+        "mem_used": [
+            {
+                "time": "2025-07-15T13:20:49.441405Z",
+                "value": 13041.375,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:20:39.441559Z",
+                "value": 12880.4375,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:20:29.44214Z",
+                "value": 12803.546875,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:20:19.442697Z",
+                "value": 12752.96875,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:20:09.440917Z",
+                "value": 12876.375,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:19:59.44483Z",
+                "value": 12767.453125,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:19:49.440736Z",
+                "value": 13132.28125,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:19:39.440402Z",
+                "value": 13442.921875,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:19:29.451325Z",
+                "value": 12845.59375,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:19:19.440358Z",
+                "value": 12814.0625,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:19:09.44028Z",
+                "value": 12882.078125,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T13:18:59.442527Z",
+                "value": 13313.859375,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T12:21:55.745652Z",
+                "value": 13265.4375,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T12:21:45.745216Z",
+                "value": 13307.28125,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T12:21:35.746185Z",
+                "value": 13255.875,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T12:21:25.745155Z",
+                "value": 13244.5,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T12:21:15.745695Z",
+                "value": 13245.234375,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T12:21:05.743815Z",
+                "value": 13210.421875,
+                "labels": null,
+                "metric_name": "mem_used"
+            },
+            {
+                "time": "2025-07-15T12:20:55.744912Z",
+                "value": 13252.03125,
+                "labels": null,
+                "metric_name": "mem_used"
+            }
+        ],
+        "net_bytes_recv": [
+            {
+                "time": "2025-07-15T13:20:19.45502Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.455018Z",
+                "value": 124,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.455017Z",
+                "value": 32244,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.455004Z",
+                "value": 71340,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454999Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454907Z",
+                "value": 52132,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454906Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454904Z",
+                "value": 9542318,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454903Z",
+                "value": 7640714959,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454901Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.4549Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454891Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.45489Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454888Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454886Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454885Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454883Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454882Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454881Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454879Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.45487Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454868Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454867Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454863Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454821Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454819Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454789Z",
+                "value": 1213399303,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447611Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447607Z",
+                "value": 124,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447606Z",
+                "value": 32244,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447605Z",
+                "value": 71340,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447603Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447602Z",
+                "value": 52132,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447601Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.4476Z",
+                "value": 9542318,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447598Z",
+                "value": 7640471495,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447597Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447596Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447595Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447592Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.44759Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447589Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447584Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447583Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447582Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447579Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447577Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447576Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447575Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447574Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447572Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447571Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447569Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447557Z",
+                "value": 1213359783,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458431Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458389Z",
+                "value": 124,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458386Z",
+                "value": 32244,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458384Z",
+                "value": 71340,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458381Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458378Z",
+                "value": 52132,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458376Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458373Z",
+                "value": 9542318,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.45837Z",
+                "value": 7633245751,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458368Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458354Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458352Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458349Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458346Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458343Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458341Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458334Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458332Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458324Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458319Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458317Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458314Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458311Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458303Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.4583Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458294Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458225Z",
+                "value": 1204318623,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758634Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758631Z",
+                "value": 124,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758628Z",
+                "value": 31462,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758625Z",
+                "value": 69534,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758622Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758619Z",
+                "value": 52132,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758617Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758614Z",
+                "value": 9519871,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758611Z",
+                "value": 7437717094,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758608Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758606Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758603Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.7586Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758597Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758595Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758592Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758589Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758559Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758557Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758554Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758552Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758549Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758546Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758544Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758531Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.75852Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758473Z",
+                "value": 1198631920,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.75565Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755644Z",
+                "value": 124,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755606Z",
+                "value": 31462,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755603Z",
+                "value": 69534,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.7556Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755596Z",
+                "value": 52132,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755593Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.75559Z",
+                "value": 9519871,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755586Z",
+                "value": 7437610434,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755583Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.75558Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755572Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755568Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755565Z",
+                "value": 0,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755562Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755559Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755556Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755553Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.75555Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755547Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755538Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755534Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755525Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755522Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755508Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755503Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_recv"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755455Z",
+                "value": 1198566967,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_recv"
+            }
+        ],
+        "net_bytes_sent": [
+            {
+                "time": "2025-07-15T13:20:19.45502Z",
+                "value": 360,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.455018Z",
+                "value": 1056,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.455017Z",
+                "value": 39535818,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.455003Z",
+                "value": 19767909,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454998Z",
+                "value": 1746,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454907Z",
+                "value": 84648,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454905Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454904Z",
+                "value": 1254454,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454902Z",
+                "value": 2444144291,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454901Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.4549Z",
+                "value": 1686,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454891Z",
+                "value": 1626,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.45489Z",
+                "value": 1626,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454887Z",
+                "value": 80,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454886Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454885Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454883Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454882Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.45488Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454871Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.45487Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454868Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454867Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454862Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454821Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454819Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:20:19.454777Z",
+                "value": 1213399303,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447609Z",
+                "value": 360,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447607Z",
+                "value": 1056,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447606Z",
+                "value": 39517972,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447605Z",
+                "value": 19758986,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447603Z",
+                "value": 1746,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447602Z",
+                "value": 84648,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447601Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447599Z",
+                "value": 1254454,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447598Z",
+                "value": 2443779019,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447597Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447596Z",
+                "value": 1686,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447595Z",
+                "value": 1626,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447592Z",
+                "value": 1626,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.44759Z",
+                "value": 80,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447588Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447584Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447583Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447582Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447579Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447577Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447576Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447575Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447573Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447572Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447571Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447569Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:49.447556Z",
+                "value": 1213359783,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458431Z",
+                "value": 360,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458389Z",
+                "value": 1056,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458386Z",
+                "value": 39502050,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458383Z",
+                "value": 19751025,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458381Z",
+                "value": 1746,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458378Z",
+                "value": 84648,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458376Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458373Z",
+                "value": 1254454,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.45837Z",
+                "value": 2443676141,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458356Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458354Z",
+                "value": 1686,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458351Z",
+                "value": 1626,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458349Z",
+                "value": 1626,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458346Z",
+                "value": 80,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458343Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458341Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458334Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458331Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458324Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458319Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458317Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458314Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458306Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458303Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458298Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458286Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T13:19:19.458222Z",
+                "value": 1204318623,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758633Z",
+                "value": 200,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.75863Z",
+                "value": 1056,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758628Z",
+                "value": 37597538,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758625Z",
+                "value": 18798769,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758622Z",
+                "value": 1426,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758619Z",
+                "value": 84648,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758617Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758613Z",
+                "value": 1219379,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758611Z",
+                "value": 2311804898,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758608Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758606Z",
+                "value": 1366,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758603Z",
+                "value": 1306,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.7586Z",
+                "value": 1306,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758597Z",
+                "value": 80,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758594Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758592Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758562Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758559Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758556Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758554Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758551Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758549Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758546Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758543Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758531Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.75852Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:35.758464Z",
+                "value": 1198631920,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.75565Z",
+                "value": 200,
+                "labels": {
+                    "iface": "utun7"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755643Z",
+                "value": 1056,
+                "labels": {
+                    "iface": "utun6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755606Z",
+                "value": 37579124,
+                "labels": {
+                    "iface": "bridge100"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755602Z",
+                "value": 18789562,
+                "labels": {
+                    "iface": "vmenet0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755599Z",
+                "value": 1426,
+                "labels": {
+                    "iface": "utun5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755596Z",
+                "value": 84648,
+                "labels": {
+                    "iface": "utun4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755593Z",
+                "value": 0,
+                "labels": {
+                    "iface": "llw0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755589Z",
+                "value": 1219379,
+                "labels": {
+                    "iface": "awdl0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755586Z",
+                "value": 2311741081,
+                "labels": {
+                    "iface": "en0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755583Z",
+                "value": 0,
+                "labels": {
+                    "iface": "ap1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.75558Z",
+                "value": 1366,
+                "labels": {
+                    "iface": "utun3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755572Z",
+                "value": 1306,
+                "labels": {
+                    "iface": "utun2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755568Z",
+                "value": 1306,
+                "labels": {
+                    "iface": "utun1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755565Z",
+                "value": 80,
+                "labels": {
+                    "iface": "utun0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755562Z",
+                "value": 0,
+                "labels": {
+                    "iface": "bridge0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755559Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en3"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755556Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755553Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.75555Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en6"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755541Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en5"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755537Z",
+                "value": 0,
+                "labels": {
+                    "iface": "en4"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755534Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi1"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755525Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755522Z",
+                "value": 0,
+                "labels": {
+                    "iface": "anpi2"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755508Z",
+                "value": 0,
+                "labels": {
+                    "iface": "stf0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755502Z",
+                "value": 0,
+                "labels": {
+                    "iface": "gif0"
+                },
+                "metric_name": "net_bytes_sent"
+            },
+            {
+                "time": "2025-07-15T12:21:05.755449Z",
+                "value": 1198566967,
+                "labels": {
+                    "iface": "lo0"
+                },
+                "metric_name": "net_bytes_sent"
+            }
+        ]
+    }
+}

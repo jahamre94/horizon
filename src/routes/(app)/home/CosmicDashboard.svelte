@@ -15,6 +15,10 @@
 		avg_cpu_usage: number;
 		avg_temp_celsius: number;
 		avg_uptime_seconds: number;
+		docker_containers_total: number;
+		docker_containers_running: number;
+		docker_containers_exited: number;
+		docker_containers_created: number;
 	}
 
 	let summary: CosmicSystemSummary | null = null;
@@ -95,6 +99,20 @@
 		if (usedPercent < 70) return 'badge-success';
 		if (usedPercent < 85) return 'badge-warning';
 		return 'badge-error';
+	}
+
+	function getDockerHealthColor(running: number, total: number): string {
+		const ratio = running / total;
+		if (ratio >= 0.8) return 'from-green-500 to-emerald-600';
+		if (ratio >= 0.6) return 'from-yellow-500 to-orange-600';
+		return 'from-red-500 to-rose-600';
+	}
+
+	function getDockerHealthStatus(running: number, total: number): string {
+		const ratio = running / total;
+		if (ratio >= 0.8) return 'Healthy';
+		if (ratio >= 0.6) return 'Warning';
+		return 'Critical';
 	}
 
 	async function fetchCosmicSummary() {
@@ -324,7 +342,7 @@
 		</div>
 
 		<!-- Detailed Metrics -->
-		<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
 			<!-- Storage Systems -->
 			<div class="card bg-base-100 shadow-xl">
 				<div class="card-body">
@@ -336,18 +354,20 @@
 						</div>
 					</div>
 
-					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+					<div class="space-y-4">
 						<div class="bg-base-200 rounded-lg p-4">
-							<div class="mb-2 flex items-center justify-between">
+							<div class="mb-3 flex items-center justify-between">
 								<span class="text-sm font-medium">Total Capacity</span>
-								<span class="text-lg font-bold">{formatDisk(summary.total_disk_gb)}</span>
+								<span class="text-lg font-bold whitespace-nowrap"
+									>{formatDisk(summary.total_disk_gb)}</span
+								>
 							</div>
 							<div class="flex items-center justify-between">
 								<span class="text-sm font-medium">Used Space</span>
 								<span
 									class="badge {getDiskColor(
 										getDiskUsagePercent(summary.total_disk_used_gb, summary.total_disk_gb)
-									)}"
+									)} whitespace-nowrap"
 								>
 									{formatDisk(summary.total_disk_used_gb)}
 								</span>
@@ -355,9 +375,9 @@
 						</div>
 
 						<div class="bg-base-200 rounded-lg p-4">
-							<div class="mb-2 flex items-center justify-between">
+							<div class="mb-3 flex items-center justify-between">
 								<span class="text-sm font-medium">Usage</span>
-								<span class="text-lg font-bold"
+								<span class="text-lg font-bold whitespace-nowrap"
 									>{getDiskUsagePercent(summary.total_disk_used_gb, summary.total_disk_gb).toFixed(
 										1
 									)}%</span
@@ -408,6 +428,66 @@
 							<div class="flex items-center gap-2">
 								<div class="text-xl">📥</div>
 								<span class="badge badge-accent">Inbound</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Docker Container Management -->
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="mb-4 flex items-center gap-3">
+						<div class="text-3xl">🐳</div>
+						<div>
+							<h3 class="text-xl font-bold">Container Orchestration</h3>
+							<p class="text-base-content/70">Docker containers across the cosmic network</p>
+						</div>
+					</div>
+
+					<div class="mb-4">
+						<div class="mb-2 flex items-center justify-between">
+							<span class="text-sm font-medium">Container Health</span>
+							<span class="text-lg font-bold">
+								{getDockerHealthStatus(
+									summary.docker_containers_running,
+									summary.docker_containers_total
+								)}
+							</span>
+						</div>
+						<div class="bg-base-300 h-3 w-full rounded-full">
+							<div
+								class="h-3 rounded-full bg-gradient-to-r {getDockerHealthColor(
+									summary.docker_containers_running,
+									summary.docker_containers_total
+								)} transition-all duration-300"
+								style="width: {(summary.docker_containers_running /
+									summary.docker_containers_total) *
+									100}%"
+							></div>
+						</div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-4">
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Running</span>
+								<span class="badge badge-success">{summary.docker_containers_running}</span>
+							</div>
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Exited</span>
+								<span class="badge badge-error">{summary.docker_containers_exited}</span>
+							</div>
+						</div>
+
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Created</span>
+								<span class="badge badge-info">{summary.docker_containers_created}</span>
+							</div>
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Total</span>
+								<span class="badge badge-neutral">{summary.docker_containers_total}</span>
 							</div>
 						</div>
 					</div>
