@@ -19,6 +19,16 @@
 		docker_containers_running: number;
 		docker_containers_exited: number;
 		docker_containers_created: number;
+		qemu_vms_total: number;
+		qemu_vms_running: number;
+		qemu_vms_stopped: number;
+		qemu_vms_paused: number;
+		qemu_vms_suspended: number;
+		qemu_vms_crashed: number;
+		qemu_vms_pmsuspended: number;
+		qemu_vms_unknown: number;
+		qemu_total_vcpus: number;
+		qemu_total_memory_mb: number;
 	}
 
 	let summary: CosmicSystemSummary | null = null;
@@ -109,6 +119,20 @@
 	}
 
 	function getDockerHealthStatus(running: number, total: number): string {
+		const ratio = running / total;
+		if (ratio >= 0.8) return 'Healthy';
+		if (ratio >= 0.6) return 'Warning';
+		return 'Critical';
+	}
+
+	function getQemuHealthColor(running: number, total: number): string {
+		const ratio = running / total;
+		if (ratio >= 0.8) return 'from-green-500 to-emerald-600';
+		if (ratio >= 0.6) return 'from-yellow-500 to-orange-600';
+		return 'from-red-500 to-rose-600';
+	}
+
+	function getQemuHealthStatus(running: number, total: number): string {
 		const ratio = running / total;
 		if (ratio >= 0.8) return 'Healthy';
 		if (ratio >= 0.6) return 'Warning';
@@ -235,7 +259,7 @@
 		</div>
 
 		<!-- Core Metrics Grid -->
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-5">
 			<!-- Observer Network -->
 			<div class="card bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-xl">
 				<div class="card-body">
@@ -339,155 +363,254 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- QEMU Virtual Machines -->
+			<div class="card bg-gradient-to-br from-purple-500 to-pink-600 text-white shadow-xl">
+				<div class="card-body">
+					<div class="flex items-center justify-between">
+						<div class="text-3xl">🖥️</div>
+						<div class="text-right">
+							<div class="text-2xl font-bold">{summary.qemu_vms_total}</div>
+							<div class="text-sm opacity-80">Total VMs</div>
+						</div>
+					</div>
+					<div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+						<div class="rounded bg-white/20 p-2 text-center">
+							<div class="font-bold text-green-300">{summary.qemu_vms_running}</div>
+							<div class="opacity-80">Running</div>
+						</div>
+						<div class="rounded bg-white/20 p-2 text-center">
+							<div class="font-bold text-red-300">{summary.qemu_vms_stopped}</div>
+							<div class="opacity-80">Stopped</div>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 
 		<!-- Detailed Metrics -->
-		<div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-			<!-- Storage Systems -->
-			<div class="card bg-base-100 shadow-xl">
-				<div class="card-body">
-					<div class="mb-4 flex items-center gap-3">
-						<div class="text-3xl">💿</div>
-						<div>
-							<h3 class="text-xl font-bold">Storage Systems</h3>
-							<p class="text-base-content/70">Distributed storage across the cosmic network</p>
+		<div class="space-y-6">
+			<!-- Storage and Network Row -->
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<!-- Storage Systems -->
+				<div class="card bg-base-100 shadow-xl">
+					<div class="card-body">
+						<div class="mb-4 flex items-center gap-3">
+							<div class="text-3xl">💿</div>
+							<div>
+								<h3 class="text-xl font-bold">Storage Systems</h3>
+								<p class="text-base-content/70">Distributed storage across the cosmic network</p>
+							</div>
+						</div>
+
+						<div class="space-y-4">
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-3 flex items-center justify-between">
+									<span class="text-sm font-medium">Total Capacity</span>
+									<span class="text-lg font-bold whitespace-nowrap"
+										>{formatDisk(summary.total_disk_gb)}</span
+									>
+								</div>
+								<div class="flex items-center justify-between">
+									<span class="text-sm font-medium">Used Space</span>
+									<span
+										class="badge {getDiskColor(
+											getDiskUsagePercent(summary.total_disk_used_gb, summary.total_disk_gb)
+										)} whitespace-nowrap"
+									>
+										{formatDisk(summary.total_disk_used_gb)}
+									</span>
+								</div>
+							</div>
+
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-3 flex items-center justify-between">
+									<span class="text-sm font-medium">Usage</span>
+									<span class="text-lg font-bold whitespace-nowrap"
+										>{getDiskUsagePercent(
+											summary.total_disk_used_gb,
+											summary.total_disk_gb
+										).toFixed(1)}%</span
+									>
+								</div>
+								<div class="bg-base-300 h-3 w-full rounded-full">
+									<div
+										class="bg-primary h-3 rounded-full transition-all duration-300"
+										style="width: {getDiskUsagePercent(
+											summary.total_disk_used_gb,
+											summary.total_disk_gb
+										)}%"
+									></div>
+								</div>
+							</div>
 						</div>
 					</div>
+				</div>
 
-					<div class="space-y-4">
-						<div class="bg-base-200 rounded-lg p-4">
-							<div class="mb-3 flex items-center justify-between">
-								<span class="text-sm font-medium">Total Capacity</span>
-								<span class="text-lg font-bold whitespace-nowrap"
-									>{formatDisk(summary.total_disk_gb)}</span
-								>
-							</div>
-							<div class="flex items-center justify-between">
-								<span class="text-sm font-medium">Used Space</span>
-								<span
-									class="badge {getDiskColor(
-										getDiskUsagePercent(summary.total_disk_used_gb, summary.total_disk_gb)
-									)} whitespace-nowrap"
-								>
-									{formatDisk(summary.total_disk_used_gb)}
-								</span>
+				<!-- Network Traffic -->
+				<div class="card bg-base-100 shadow-xl">
+					<div class="card-body">
+						<div class="mb-4 flex items-center gap-3">
+							<div class="text-3xl">🌐</div>
+							<div>
+								<h3 class="text-xl font-bold">Network Traffic</h3>
+								<p class="text-base-content/70">Data flow across observer nodes</p>
 							</div>
 						</div>
 
-						<div class="bg-base-200 rounded-lg p-4">
-							<div class="mb-3 flex items-center justify-between">
-								<span class="text-sm font-medium">Usage</span>
-								<span class="text-lg font-bold whitespace-nowrap"
-									>{getDiskUsagePercent(summary.total_disk_used_gb, summary.total_disk_gb).toFixed(
-										1
-									)}%</span
-								>
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-2 flex items-center justify-between">
+									<span class="text-sm font-medium">Data Sent</span>
+									<span class="text-lg font-bold">{formatBytes(summary.total_net_sent)}</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<div class="text-xl">📤</div>
+									<span class="badge badge-secondary">Outbound</span>
+								</div>
+							</div>
+
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-2 flex items-center justify-between">
+									<span class="text-sm font-medium">Data Received</span>
+									<span class="text-lg font-bold">{formatBytes(summary.total_net_recv)}</span>
+								</div>
+								<div class="flex items-center gap-2">
+									<div class="text-xl">📥</div>
+									<span class="badge badge-accent">Inbound</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Virtualization Row -->
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<!-- Docker Container Management -->
+				<div class="card bg-base-100 shadow-xl">
+					<div class="card-body">
+						<div class="mb-4 flex items-center gap-3">
+							<div class="text-3xl">🐳</div>
+							<div>
+								<h3 class="text-xl font-bold">Container Orchestration</h3>
+								<p class="text-base-content/70">Docker containers across the cosmic network</p>
+							</div>
+						</div>
+
+						<div class="mb-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Container Health</span>
+								<span class="text-lg font-bold">
+									{getDockerHealthStatus(
+										summary.docker_containers_running,
+										summary.docker_containers_total
+									)}
+								</span>
 							</div>
 							<div class="bg-base-300 h-3 w-full rounded-full">
 								<div
-									class="bg-primary h-3 rounded-full transition-all duration-300"
-									style="width: {getDiskUsagePercent(
-										summary.total_disk_used_gb,
-										summary.total_disk_gb
-									)}%"
+									class="h-3 rounded-full bg-gradient-to-r {getDockerHealthColor(
+										summary.docker_containers_running,
+										summary.docker_containers_total
+									)} transition-all duration-300"
+									style="width: {(summary.docker_containers_running /
+										summary.docker_containers_total) *
+										100}%"
 								></div>
 							</div>
 						</div>
-					</div>
-				</div>
-			</div>
 
-			<!-- Network Traffic -->
-			<div class="card bg-base-100 shadow-xl">
-				<div class="card-body">
-					<div class="mb-4 flex items-center gap-3">
-						<div class="text-3xl">�</div>
-						<div>
-							<h3 class="text-xl font-bold">Network Traffic</h3>
-							<p class="text-base-content/70">Data flow across observer nodes</p>
-						</div>
-					</div>
+						<div class="grid grid-cols-2 gap-4">
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-2 flex items-center justify-between">
+									<span class="text-sm font-medium">Running</span>
+									<span class="badge badge-success">{summary.docker_containers_running}</span>
+								</div>
+								<div class="mb-2 flex items-center justify-between">
+									<span class="text-sm font-medium">Exited</span>
+									<span class="badge badge-error">{summary.docker_containers_exited}</span>
+								</div>
+							</div>
 
-					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<div class="bg-base-200 rounded-lg p-4">
-							<div class="mb-2 flex items-center justify-between">
-								<span class="text-sm font-medium">Data Sent</span>
-								<span class="text-lg font-bold">{formatBytes(summary.total_net_sent)}</span>
-							</div>
-							<div class="flex items-center gap-2">
-								<div class="text-xl">📤</div>
-								<span class="badge badge-secondary">Outbound</span>
-							</div>
-						</div>
-
-						<div class="bg-base-200 rounded-lg p-4">
-							<div class="mb-2 flex items-center justify-between">
-								<span class="text-sm font-medium">Data Received</span>
-								<span class="text-lg font-bold">{formatBytes(summary.total_net_recv)}</span>
-							</div>
-							<div class="flex items-center gap-2">
-								<div class="text-xl">📥</div>
-								<span class="badge badge-accent">Inbound</span>
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-2 flex items-center justify-between">
+									<span class="text-sm font-medium">Created</span>
+									<span class="badge badge-info">{summary.docker_containers_created}</span>
+								</div>
+								<div class="mb-2 flex items-center justify-between">
+									<span class="text-sm font-medium">Total</span>
+									<span class="badge badge-neutral">{summary.docker_containers_total}</span>
+								</div>
 							</div>
 						</div>
 					</div>
 				</div>
-			</div>
 
-			<!-- Docker Container Management -->
-			<div class="card bg-base-100 shadow-xl">
-				<div class="card-body">
-					<div class="mb-4 flex items-center gap-3">
-						<div class="text-3xl">🐳</div>
-						<div>
-							<h3 class="text-xl font-bold">Container Orchestration</h3>
-							<p class="text-base-content/70">Docker containers across the cosmic network</p>
-						</div>
-					</div>
-
-					<div class="mb-4">
-						<div class="mb-2 flex items-center justify-between">
-							<span class="text-sm font-medium">Container Health</span>
-							<span class="text-lg font-bold">
-								{getDockerHealthStatus(
-									summary.docker_containers_running,
-									summary.docker_containers_total
-								)}
-							</span>
-						</div>
-						<div class="bg-base-300 h-3 w-full rounded-full">
-							<div
-								class="h-3 rounded-full bg-gradient-to-r {getDockerHealthColor(
-									summary.docker_containers_running,
-									summary.docker_containers_total
-								)} transition-all duration-300"
-								style="width: {(summary.docker_containers_running /
-									summary.docker_containers_total) *
-									100}%"
-							></div>
-						</div>
-					</div>
-
-					<div class="grid grid-cols-2 gap-4">
-						<div class="bg-base-200 rounded-lg p-4">
-							<div class="mb-2 flex items-center justify-between">
-								<span class="text-sm font-medium">Running</span>
-								<span class="badge badge-success">{summary.docker_containers_running}</span>
-							</div>
-							<div class="mb-2 flex items-center justify-between">
-								<span class="text-sm font-medium">Exited</span>
-								<span class="badge badge-error">{summary.docker_containers_exited}</span>
+				<!-- QEMU Virtual Machine Management -->
+				<div class="card bg-base-100 shadow-xl">
+					<div class="card-body">
+						<div class="mb-4 flex items-center gap-3">
+							<div class="text-3xl">🖥️</div>
+							<div>
+								<h3 class="text-xl font-bold">Virtual Machines</h3>
+								<p class="text-base-content/70">QEMU VMs across the cosmic network</p>
 							</div>
 						</div>
 
-						<div class="bg-base-200 rounded-lg p-4">
+						<div class="mb-4">
 							<div class="mb-2 flex items-center justify-between">
-								<span class="text-sm font-medium">Created</span>
-								<span class="badge badge-info">{summary.docker_containers_created}</span>
+								<span class="text-sm font-medium">VM Health</span>
+								<span class="text-lg font-bold">
+									{getQemuHealthStatus(summary.qemu_vms_running, summary.qemu_vms_total)}
+								</span>
 							</div>
-							<div class="mb-2 flex items-center justify-between">
-								<span class="text-sm font-medium">Total</span>
-								<span class="badge badge-neutral">{summary.docker_containers_total}</span>
+							<div class="bg-base-300 h-3 w-full rounded-full">
+								<div
+									class="h-3 rounded-full bg-gradient-to-r {getQemuHealthColor(
+										summary.qemu_vms_running,
+										summary.qemu_vms_total
+									)} transition-all duration-300"
+									style="width: {(summary.qemu_vms_running / summary.qemu_vms_total) * 100}%"
+								></div>
+							</div>
+						</div>
+
+						<div class="space-y-4">
+							<div class="grid grid-cols-2 gap-4">
+								<div class="bg-base-200 rounded-lg p-4">
+									<div class="mb-2 flex items-center justify-between">
+										<span class="text-sm font-medium">Running</span>
+										<span class="badge badge-success">{summary.qemu_vms_running}</span>
+									</div>
+									<div class="mb-2 flex items-center justify-between">
+										<span class="text-sm font-medium">Stopped</span>
+										<span class="badge badge-error">{summary.qemu_vms_stopped}</span>
+									</div>
+								</div>
+
+								<div class="bg-base-200 rounded-lg p-4">
+									<div class="mb-2 flex items-center justify-between">
+										<span class="text-sm font-medium">Paused</span>
+										<span class="badge badge-warning">{summary.qemu_vms_paused}</span>
+									</div>
+									<div class="mb-2 flex items-center justify-between">
+										<span class="text-sm font-medium">Suspended</span>
+										<span class="badge badge-info">{summary.qemu_vms_suspended}</span>
+									</div>
+								</div>
+							</div>
+
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-2 flex items-center justify-between">
+									<span class="text-sm font-medium">Total vCPUs</span>
+									<span class="text-lg font-bold">{summary.qemu_total_vcpus}</span>
+								</div>
+								<div class="flex items-center justify-between">
+									<span class="text-sm font-medium">VM Memory</span>
+									<span class="text-lg font-bold">{formatMemory(summary.qemu_total_memory_mb)}</span
+									>
+								</div>
 							</div>
 						</div>
 					</div>
