@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
 	import { apiGet } from '$lib/api/api';
-	import { MetricChart } from '$lib';
+	import { MetricChart, VirtualMachinesList } from '$lib';
 
 	export let data;
 
@@ -58,7 +58,13 @@
 		disk_used_percent: { unit: '%', color: '#f59e0b', title: 'Disk Usage' },
 		net_bytes_sent: { unit: 'Bytes', color: '#ef4444', title: 'Network Sent' },
 		net_bytes_recv: { unit: 'Bytes', color: '#8b5cf6', title: 'Network Received' },
-		temp_celsius: { unit: '°C', color: '#f97316', title: 'Temperature' }
+		temp_celsius: { unit: '°C', color: '#f97316', title: 'Temperature' },
+		qemu_vm_cpu_usage: { unit: '%', color: '#3b82f6', title: 'VM CPU Usage' },
+		qemu_vm_memory_usage: { unit: '%', color: '#10b981', title: 'VM Memory Usage' },
+		qemu_vm_disk_read_bytes: { unit: 'Bytes', color: '#06b6d4', title: 'VM Disk Read' },
+		qemu_vm_disk_write_bytes: { unit: 'Bytes', color: '#f59e0b', title: 'VM Disk Write' },
+		qemu_vm_network_rx_bytes: { unit: 'Bytes', color: '#8b5cf6', title: 'VM Network RX' },
+		qemu_vm_network_tx_bytes: { unit: 'Bytes', color: '#ef4444', title: 'VM Network TX' }
 	};
 
 	async function fetchMetrics(hours: number) {
@@ -361,6 +367,56 @@
 		? createDiskTrendsDataset()
 		: { data: [], mounts: [] };
 	$: visibleMounts = diskTrendsData.mounts.slice(0, 6); // Limit to 6 mounts for readability
+
+	// Create a combined dataset for VM metrics grouped by VM name
+	function createVMMetricDataset(metricName: string): {
+		data: MetricSnapshot[];
+		vmNames: string[];
+	} {
+		const metricData = metrics[metricName];
+		if (!metricData) {
+			console.warn(`[createVMMetricDataset] No data found for metric: ${metricName}`);
+			return { data: [], vmNames: [] };
+		}
+
+		const grouped: Record<string, MetricSnapshot[]> = {};
+
+		metricData.forEach((snapshot, idx) => {
+			const vmName = snapshot.labels?.vm_name || 'unknown';
+
+			if (!snapshot.labels || typeof snapshot.labels !== 'object') {
+				console.warn(`[${metricName}][${idx}] Missing or invalid labels:`, snapshot.labels);
+			} else if (!snapshot.labels.vm_name) {
+				console.warn(
+					`[${metricName}][${idx}] 'vm_name' label not found in labels:`,
+					snapshot.labels
+				);
+			}
+
+			if (!grouped[vmName]) {
+				grouped[vmName] = [];
+			}
+			grouped[vmName].push(snapshot);
+		});
+
+		const vmNames = Object.keys(grouped);
+		const data: MetricSnapshot[] = [];
+
+		vmNames.forEach((vmName) => {
+			grouped[vmName].forEach((snapshot) => {
+				data.push({
+					...snapshot,
+					// Add VM name info to the snapshot for chart rendering
+					interfaceName: vmName
+				});
+			});
+		});
+
+		console.log(
+			`[createVMMetricDataset] Grouped ${metricData.length} datapoints into ${vmNames.length} VMs`
+		);
+		return { data, vmNames };
+	}
 </script>
 
 <svelte:head>
@@ -541,6 +597,9 @@
 			</div>
 		</div>
 
+		<!-- Virtual Machines List -->
+		<VirtualMachinesList {metrics} />
+
 		<!-- Loading State -->
 		{#if loading}
 			<div class="flex items-center justify-center py-8">
@@ -683,7 +742,7 @@
 			{#if availableMetrics.length > 0}
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					{#each availableMetrics as metricName}
-						{#if metricName !== 'disk_used_percent'}
+						{#if metricName !== 'disk_used_percent' && metricName !== 'qemu_vm_status'}
 							{@const config = metricConfigs[metricName] || {
 								unit: '',
 								color: '#6b7280',
@@ -696,6 +755,17 @@
 									<MetricChart
 										title={config.title}
 										data={networkData.data}
+										unit={config.unit}
+										color={config.color}
+										groupBy="interfaceName"
+									/>
+								{/if}
+							{:else if metricName.startsWith('qemu_vm_')}
+								{@const vmData = createVMMetricDataset(metricName)}
+								{#if vmData.data.length > 0}
+									<MetricChart
+										title={config.title}
+										data={vmData.data}
 										unit={config.unit}
 										color={config.color}
 										groupBy="interfaceName"

@@ -83,6 +83,13 @@
 		return formatBytes(actualBytes);
 	}
 
+	function formatQemuMemory(mb: number): string {
+		if (mb >= 1024) {
+			return `${(mb / 1024).toFixed(1)} GB`;
+		}
+		return `${mb} MB`;
+	}
+
 	function getMetricColor(name: string): string {
 		const map: Record<string, string> = {
 			cpu_usage: 'badge-warning',
@@ -331,6 +338,70 @@
 		return metrics;
 	}
 
+	// Helper function to get QEMU virtual machine metrics
+	function getQemuMetrics(observer: ObserverWithMetrics): {
+		running?: number;
+		stopped?: number;
+		paused?: number;
+		suspended?: number;
+		crashed?: number;
+		pmsuspended?: number;
+		unknown?: number;
+		total?: number;
+		totalVcpus?: number;
+		totalMemoryMb?: number;
+		hasAnyMetrics: boolean;
+	} {
+		const metrics = {
+			running: hasMetric(observer, 'qemu_vms_running')
+				? getFirstMetricValue(observer, 'qemu_vms_running').value
+				: undefined,
+			stopped: hasMetric(observer, 'qemu_vms_stopped')
+				? getFirstMetricValue(observer, 'qemu_vms_stopped').value
+				: undefined,
+			paused: hasMetric(observer, 'qemu_vms_paused')
+				? getFirstMetricValue(observer, 'qemu_vms_paused').value
+				: undefined,
+			suspended: hasMetric(observer, 'qemu_vms_suspended')
+				? getFirstMetricValue(observer, 'qemu_vms_suspended').value
+				: undefined,
+			crashed: hasMetric(observer, 'qemu_vms_crashed')
+				? getFirstMetricValue(observer, 'qemu_vms_crashed').value
+				: undefined,
+			pmsuspended: hasMetric(observer, 'qemu_vms_pmsuspended')
+				? getFirstMetricValue(observer, 'qemu_vms_pmsuspended').value
+				: undefined,
+			unknown: hasMetric(observer, 'qemu_vms_unknown')
+				? getFirstMetricValue(observer, 'qemu_vms_unknown').value
+				: undefined,
+			total: hasMetric(observer, 'qemu_vms_total')
+				? getFirstMetricValue(observer, 'qemu_vms_total').value
+				: undefined,
+			totalVcpus: hasMetric(observer, 'qemu_total_vcpus')
+				? getFirstMetricValue(observer, 'qemu_total_vcpus').value
+				: undefined,
+			totalMemoryMb: hasMetric(observer, 'qemu_total_memory_mb')
+				? getFirstMetricValue(observer, 'qemu_total_memory_mb').value
+				: undefined,
+			hasAnyMetrics: false
+		};
+
+		// Check if any QEMU metrics exist
+		metrics.hasAnyMetrics =
+			metrics.running !== undefined ||
+			metrics.stopped !== undefined ||
+			metrics.paused !== undefined ||
+			metrics.suspended !== undefined ||
+			metrics.crashed !== undefined ||
+			metrics.pmsuspended !== undefined ||
+			metrics.unknown !== undefined ||
+			metrics.total !== undefined ||
+			metrics.totalVcpus !== undefined ||
+			metrics.totalMemoryMb !== undefined;
+
+		return metrics;
+	}
+
 	async function fetchObservers() {
 		loading = true;
 		error = '';
@@ -532,6 +603,77 @@
 												</span>
 											{/if}
 										</div>
+									</div>
+								</div>
+							</div>
+						{/if}
+
+						<!-- QEMU Virtual Machines -->
+						{#if getQemuMetrics(o).hasAnyMetrics}
+							{@const qemuMetrics = getQemuMetrics(o)}
+							<div class="mb-3">
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-2 flex items-center gap-1">
+										<span class="text-sm">🖥️</span>
+										<span class="text-xs font-medium">Virtual Machines</span>
+									</div>
+									<div class="space-y-1 text-xs">
+										<div class="flex flex-wrap gap-2">
+											{#if qemuMetrics.running !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-success">🟢</span>
+													<span class="text-success">Running: {qemuMetrics.running}</span>
+												</span>
+											{/if}
+											{#if qemuMetrics.stopped !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-base-content/60">⚫</span>
+													<span class="text-base-content/60">Stopped: {qemuMetrics.stopped}</span>
+												</span>
+											{/if}
+											{#if qemuMetrics.paused !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-warning">⏸️</span>
+													<span class="text-warning">Paused: {qemuMetrics.paused}</span>
+												</span>
+											{/if}
+											{#if qemuMetrics.suspended !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-info">💤</span>
+													<span class="text-info">Suspended: {qemuMetrics.suspended}</span>
+												</span>
+											{/if}
+											{#if qemuMetrics.crashed !== undefined && qemuMetrics.crashed > 0}
+												<span class="flex items-center gap-1">
+													<span class="text-error">💥</span>
+													<span class="text-error">Crashed: {qemuMetrics.crashed}</span>
+												</span>
+											{/if}
+											{#if qemuMetrics.total !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-base-content/80">📊</span>
+													<span class="text-base-content/80">Total: {qemuMetrics.total}</span>
+												</span>
+											{/if}
+										</div>
+										{#if qemuMetrics.totalVcpus !== undefined || qemuMetrics.totalMemoryMb !== undefined}
+											<div class="mt-2 flex flex-wrap gap-2">
+												{#if qemuMetrics.totalVcpus !== undefined}
+													<span class="flex items-center gap-1">
+														<span class="text-accent">🔧</span>
+														<span class="text-accent">vCPUs: {qemuMetrics.totalVcpus}</span>
+													</span>
+												{/if}
+												{#if qemuMetrics.totalMemoryMb !== undefined}
+													<span class="flex items-center gap-1">
+														<span class="text-secondary">💾</span>
+														<span class="text-secondary"
+															>Memory: {formatQemuMemory(qemuMetrics.totalMemoryMb)}</span
+														>
+													</span>
+												{/if}
+											</div>
+										{/if}
 									</div>
 								</div>
 							</div>
