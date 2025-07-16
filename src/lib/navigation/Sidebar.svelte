@@ -68,11 +68,11 @@
 	}
 </script>
 
-<div class="drawer lg:drawer-open">
+<div class="drawer lg:drawer-open h-screen">
 	<input id="drawer-toggle" type="checkbox" class="drawer-toggle" bind:checked={showMobileNav} />
-	<div class="drawer-content flex min-w-0 flex-col">
+	<div class="drawer-content flex min-w-0 flex-col h-full">
 		<!-- Mobile topbar (only visible on mobile) -->
-		<div class="navbar bg-base-100 border-base-300 border-b px-4 shadow-md lg:hidden">
+		<div class="navbar bg-base-100 border-base-300 border-b px-4 shadow-md lg:hidden flex-shrink-0">
 			<div class="flex-none">
 				<label for="drawer-toggle" class="btn btn-square btn-ghost">
 					<svg
@@ -97,13 +97,15 @@
 		</div>
 
 		<!-- Main content -->
-		<slot />
+		<div class="flex-1 overflow-hidden">
+			<slot />
+		</div>
 	</div>
 
 	<div class="drawer-side">
 		<label for="drawer-toggle" class="drawer-overlay"></label>
 		<aside
-			class="flex min-h-full w-64 flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100 shadow-2xl"
+			class="flex h-full w-64 flex-col bg-gradient-to-b from-slate-900 to-slate-800 text-slate-100 shadow-2xl"
 		>
 			<!-- Logo section - Horizon Portal -->
 			<!-- Logo section - Horizon Portal -->

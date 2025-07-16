@@ -50,6 +50,7 @@
 /* Mobile overflow fixes */
 html, body {
   overflow-x: hidden;
+  height: 100%;
 }
 
 /* Ensure drawer doesn't cause horizontal overflow on mobile */

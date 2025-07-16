@@ -4,6 +4,6 @@
 	let { children } = $props();
 </script>
 
-<div data-theme="theme-cosmoswatcher">
+<div data-theme="theme-cosmoswatcher" class="h-full">
 	{@render children()}
 </div>
