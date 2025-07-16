@@ -70,9 +70,9 @@
 
 <div class="drawer lg:drawer-open h-screen">
 	<input id="drawer-toggle" type="checkbox" class="drawer-toggle" bind:checked={showMobileNav} />
-	<div class="drawer-content flex min-w-0 flex-col h-full">
+	<div class="drawer-content flex h-full min-w-0 flex-col">
 		<!-- Mobile topbar (only visible on mobile) -->
-		<div class="navbar bg-base-100 border-base-300 border-b px-4 shadow-md lg:hidden flex-shrink-0">
+		<div class="navbar bg-base-100 border-base-300 flex-shrink-0 border-b px-4 shadow-md lg:hidden">
 			<div class="flex-none">
 				<label for="drawer-toggle" class="btn btn-square btn-ghost">
 					<svg
