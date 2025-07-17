@@ -78,11 +78,37 @@
 		return `echo 'bootstrap_token: ${bootstrapToken}\nserver_url: ${serverUrl}' > observer.yaml`;
 	}
 
+	function getExecutableFilename() {
+		const typeMap: Record<string, string> = {
+			'linux-amd64': 'observer',
+			'linux-arm64': 'observer',
+			'darwin-amd64': 'observer',
+			'darwin-arm64': 'observer',
+			'windows-amd64': 'observer.exe',
+			'windows-arm64': 'observer.exe'
+		};
+		return typeMap[selectedType] || 'observer';
+	}
+
 	function getDownloadUrl() {
-		const filename = `observer-${selectedType}`;
-		return browser
-			? `${serverUrl}/api/files/bins/${filename}`
-			: `https://cloud.cosmoswatcher/api/files/bins/${filename}`;
+		// Map selectedType to platform/architecture
+		const typeMap: Record<string, { platform: string; architecture: string; filename: string }> = {
+			'linux-amd64': { platform: 'linux', architecture: 'amd64', filename: 'observer' },
+			'linux-arm64': { platform: 'linux', architecture: 'arm64', filename: 'observer' },
+			'darwin-amd64': { platform: 'darwin', architecture: 'amd64', filename: 'observer' },
+			'darwin-arm64': { platform: 'darwin', architecture: 'arm64', filename: 'observer' },
+			'windows-amd64': { platform: 'windows', architecture: 'x86_64', filename: 'observer.exe' },
+			'windows-arm64': { platform: 'windows', architecture: 'arm64', filename: 'observer.exe' }
+		};
+
+		const { platform, architecture, filename } = typeMap[selectedType];
+		const path = `${platform}/${architecture}/${filename}`;
+
+		if (browser) {
+			return `${serverUrl}/api/files/bins/${path}`;
+		} else {
+			return `https://cloud.cosmoswatcher/api/files/bins/${path}`;
+		}
 	}
 
 	function copyToClipboard(text: string) {
@@ -91,6 +117,11 @@
 		}
 	}
 </script>
+
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="icon" href="/favicon.ico" type="image/x-icon" />
 
 <div class="space-y-6">
 	<div class="flex items-center justify-between">
@@ -149,13 +180,13 @@ curl -LO {getDownloadUrl()}</code
 				<!-- Execute command -->
 				<div class="relative">
 					<pre class="bg-base-200 overflow-x-auto rounded-md p-3 pr-12 text-sm"><code>
-chmod +x observer-{selectedType} && ./observer-{selectedType} --config=observer.yaml</code
+chmod +x {getExecutableFilename()} && ./{getExecutableFilename()} --config=observer.yaml</code
 						></pre>
 					<button
 						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
 						on:click={() =>
 							copyToClipboard(
-								`chmod +x observer-${selectedType} && ./observer-${selectedType} --config=observer.yaml`
+								`chmod +x ${getExecutableFilename()} && ./${getExecutableFilename()} --config=observer.yaml`
 							)}
 						title="Copy to clipboard"
 					>

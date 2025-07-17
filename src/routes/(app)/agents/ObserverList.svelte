@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { apiGet } from '$lib/api/api';
+	import { apiGet, apiDelete } from '$lib/api/api';
 	import { selectedTenant } from '$lib/stores/auth';
+	import Modal from '$lib/Modal.svelte';
 
 	type Observer = {
 		id: string;
@@ -16,6 +17,9 @@
 	let observers: Observer[] = [];
 	let loading = true;
 	let error: string | null = null;
+	let deleting = false;
+	let showDeleteModal = false;
+	let observerToDelete: Observer | null = null;
 
 	// Re-fetch observers when tenant changes
 	let initialized = false;
@@ -102,6 +106,39 @@
 		if (diffMinutes < 15) return 'text-warning';
 		return 'text-error';
 	}
+
+	function confirmDelete(observer: Observer) {
+		observerToDelete = observer;
+		showDeleteModal = true;
+	}
+
+	async function deleteObserver() {
+		if (!observerToDelete) return;
+
+		deleting = true;
+		try {
+			const res = await apiDelete<{ message: string }>(
+				`/api/observer/${observerToDelete.id}/delete`
+			);
+			if (res.success) {
+				// Remove the observer from the list
+				observers = observers.filter((obs) => obs.id !== observerToDelete!.id);
+				showDeleteModal = false;
+				observerToDelete = null;
+			} else {
+				error = res.error || 'Failed to delete observer';
+			}
+		} catch (err) {
+			error = 'Network error occurred while deleting observer';
+		} finally {
+			deleting = false;
+		}
+	}
+
+	function cancelDelete() {
+		showDeleteModal = false;
+		observerToDelete = null;
+	}
 </script>
 
 <div class="space-y-4">
@@ -169,6 +206,7 @@
 							<th>Tags</th>
 							<th>Last Seen</th>
 							<th>Uptime</th>
+							<th>Actions</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -204,6 +242,23 @@
 										? formatUptime(observer.last_uptime_seconds)
 										: '—'}
 								</td>
+								<td>
+									<button
+										class="btn btn-error btn-sm"
+										on:click={() => confirmDelete(observer)}
+										title="Delete observer"
+										aria-label="Delete observer {observer.name}"
+									>
+										<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+											<path
+												stroke-linecap="round"
+												stroke-linejoin="round"
+												stroke-width="2"
+												d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+											/>
+										</svg>
+									</button>
+								</td>
 							</tr>
 						{/each}
 					</tbody>
@@ -218,7 +273,24 @@
 					<div class="card-body p-4">
 						<div class="flex items-center justify-between">
 							<h3 class="font-semibold">{observer.name}</h3>
-							<span class="badge badge-outline capitalize">{observer.type}</span>
+							<div class="flex items-center gap-2">
+								<span class="badge badge-outline capitalize">{observer.type}</span>
+								<button
+									class="btn btn-error btn-sm btn-square"
+									on:click={() => confirmDelete(observer)}
+									title="Delete observer"
+									aria-label="Delete observer {observer.name}"
+								>
+									<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+										/>
+									</svg>
+								</button>
+							</div>
 						</div>
 
 						<div class="mt-2 grid grid-cols-2 gap-2 text-sm">
@@ -265,3 +337,54 @@
 		</div>
 	{/if}
 </div>
+
+<!-- Delete Confirmation Modal -->
+<Modal bind:visible={showDeleteModal} header="Delete Observer">
+	{#if observerToDelete}
+		<div class="space-y-4">
+			<div class="alert alert-warning">
+				<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+					/>
+				</svg>
+				<span>This action cannot be undone.</span>
+			</div>
+
+			<p class="text-base-content">
+				Are you sure you want to delete the observer <strong>{observerToDelete.name}</strong>?
+			</p>
+			<p class="text-base-content/70 text-sm">
+				This will permanently remove the observer and all its associated data including metrics,
+				tokens, and bootstrap tokens.
+			</p>
+
+			{#if error}
+				<div class="alert alert-error">
+					<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+						/>
+					</svg>
+					<span>{error}</span>
+				</div>
+			{/if}
+		</div>
+
+		<div class="modal-action">
+			<button class="btn btn-ghost" on:click={cancelDelete} disabled={deleting}> Cancel </button>
+			<button class="btn btn-error" on:click={deleteObserver} disabled={deleting}>
+				{#if deleting}
+					<span class="loading loading-spinner loading-sm"></span>
+				{/if}
+				Delete Observer
+			</button>
+		</div>
+	{/if}
+</Modal>
