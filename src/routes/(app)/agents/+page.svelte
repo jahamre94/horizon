@@ -21,8 +21,15 @@
 	let bootstrapToken: string | null = null;
 	let expiresAt: string | null = null;
 	let serverUrl = '';
-	let selectedType = 'generic';
-	const availableTypes = ['generic']; // You can add more later
+	let selectedType = 'linux-amd64';
+	const availableTypes = [
+		{ value: 'linux-amd64', label: 'Linux (x86_64)' },
+		{ value: 'linux-arm64', label: 'Linux ARM64 (Raspberry Pi, Ubuntu Gateway, etc.)' },
+		{ value: 'darwin-amd64', label: 'macOS (Intel)' },
+		{ value: 'darwin-arm64', label: 'macOS (Apple Silicon)' },
+		{ value: 'windows-amd64', label: 'Windows (x86_64)' },
+		{ value: 'windows-arm64', label: 'Windows ARM64' }
+	];
 
 	let tags: { key: string; value: string }[] = [{ key: '', value: '' }];
 
@@ -63,6 +70,7 @@
 		bootstrapToken = null;
 		expiresAt = null;
 		tags = [{ key: '', value: '' }];
+		selectedType = 'linux-amd64';
 		showAddAgentModal = false;
 	}
 
@@ -71,9 +79,10 @@
 	}
 
 	function getDownloadUrl() {
+		const filename = `observer-${selectedType}`;
 		return browser
-			? `${serverUrl}/observer-linux-amd64`
-			: 'https://watch.cosmos/observer-linux-amd64';
+			? `${serverUrl}/api/files/bins/${filename}`
+			: `https://cloud.cosmoswatcher/api/files/bins/${filename}`;
 	}
 
 	function copyToClipboard(text: string) {
@@ -140,13 +149,13 @@ curl -LO {getDownloadUrl()}</code
 				<!-- Execute command -->
 				<div class="relative">
 					<pre class="bg-base-200 overflow-x-auto rounded-md p-3 pr-12 text-sm"><code>
-chmod +x observer-linux-amd64 && ./observer-linux-amd64 --config=observer.yaml</code
+chmod +x observer-{selectedType} && ./observer-{selectedType} --config=observer.yaml</code
 						></pre>
 					<button
 						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
 						on:click={() =>
 							copyToClipboard(
-								'chmod +x observer-linux-amd64 && ./observer-linux-amd64 --config=observer.yaml'
+								`chmod +x observer-${selectedType} && ./observer-${selectedType} --config=observer.yaml`
 							)}
 						title="Copy to clipboard"
 					>
@@ -191,19 +200,42 @@ chmod +x observer-linux-amd64 && ./observer-linux-amd64 --config=observer.yaml</
 				<!-- Observer Type -->
 				<div class="form-control w-full">
 					<label class="label" for="observer-type">
-						<span class="label-text">Observer Type</span>
+						<span class="label-text">Operating System & Architecture</span>
 					</label>
-					<div id="observer-type" class="space-y-2">
-						{#each availableTypes as t}
-							<label class="label cursor-pointer justify-start gap-2">
+					<div id="observer-type" class="grid grid-cols-2 gap-2">
+						{#each availableTypes as type}
+							<label class="cursor-pointer">
 								<input
 									type="radio"
 									name="observer-type"
 									bind:group={selectedType}
-									value={t}
-									class="radio"
+									value={type.value}
+									class="sr-only"
 								/>
-								<span class="label-text capitalize">{t}</span>
+								<div
+									class="hover:border-primary/50 rounded-lg border-2 p-3 transition-all duration-200 {selectedType ===
+									type.value
+										? 'border-primary bg-primary/10'
+										: 'border-base-300'}"
+								>
+									<div class="flex items-center gap-3">
+										<div class="flex-shrink-0">
+											<div
+												class="h-4 w-4 rounded-full border-2 transition-all duration-200 {selectedType ===
+												type.value
+													? 'border-primary bg-primary'
+													: 'border-base-300'}"
+											>
+												{#if selectedType === type.value}
+													<div class="bg-primary-content h-full w-full scale-50 rounded-full"></div>
+												{/if}
+											</div>
+										</div>
+										<div class="flex-1">
+											<div class="text-sm font-medium">{type.label}</div>
+										</div>
+									</div>
+								</div>
 							</label>
 						{/each}
 					</div>
