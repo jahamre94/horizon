@@ -29,6 +29,9 @@
 	let selectedHours = 24;
 	let loading = !observer; // Start loading if observer is null
 	let error: string | null = null;
+	let userDetailsExpanded = false;
+	let loadingUserDetails = false;
+	let userDetails: any[] = [];
 
 	// Initialize metrics if observer exists
 	if (observer) {
@@ -281,6 +284,100 @@
 		const i = Math.floor(Math.log(bytes) / Math.log(k));
 		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 	}
+
+	// User account functions
+	function getUserAccountMetrics(metrics: Record<string, MetricSnapshot[]>): {
+		total: number;
+		loginable: number;
+		non_loginable: number;
+	} {
+		// First try to use the direct metrics (same as ObserverDashboard)
+		if (metrics.user_total && metrics.user_loginable && metrics.user_non_loginable) {
+			return {
+				total: metrics.user_total[0]?.value || 0,
+				loginable: metrics.user_loginable[0]?.value || 0,
+				non_loginable: metrics.user_non_loginable[0]?.value || 0
+			};
+		}
+
+		// Fallback to counting from user_account array
+		if (!metrics.user_account || metrics.user_account.length === 0) {
+			return { total: 0, loginable: 0, non_loginable: 0 };
+		}
+
+		const users = metrics.user_account;
+		const loginable = users.filter((u) => u.labels?.can_login === 'true').length;
+		const non_loginable = users.filter((u) => u.labels?.can_login === 'false').length;
+
+		return { total: users.length, loginable, non_loginable };
+	}
+
+	function getUserAccountHealthColor(loginable: number, total: number): string {
+		if (total === 0) return 'from-gray-500 to-gray-600';
+		const ratio = loginable / total;
+		if (ratio < 0.3) return 'from-green-500 to-emerald-600';
+		if (ratio < 0.6) return 'from-yellow-500 to-orange-600';
+		return 'from-red-500 to-rose-600';
+	}
+
+	function getUserAccountHealthStatus(loginable: number, total: number): string {
+		if (total === 0) return 'No Data';
+		const ratio = loginable / total;
+		if (ratio < 0.3) return 'Secure';
+		if (ratio < 0.6) return 'Moderate';
+		return 'Review';
+	}
+
+	async function toggleUserDetails() {
+		userDetailsExpanded = !userDetailsExpanded;
+		if (userDetailsExpanded && userDetails.length === 0) {
+			await loadUserDetails();
+		}
+	}
+
+	async function loadUserDetails() {
+		if (!observer || !metrics.user_account) return;
+
+		loadingUserDetails = true;
+		try {
+			// For individual observer, we already have the user data in metrics
+			userDetails = metrics.user_account
+				.map((userMetric) => {
+					const labels = userMetric.labels || {};
+					return {
+						username: labels.username || 'Unknown',
+						uid: labels.uid || 'N/A',
+						shell: labels.shell || 'N/A',
+						home: labels.home || 'N/A',
+						can_login: labels.can_login || 'false',
+						last_login_ip: labels.last_login_ip || '',
+						last_login_time: labels.last_login_time || '',
+						observer_id: observer!.id,
+						observer_name: observer!.name
+					};
+				})
+				.sort((a, b) => a.username.localeCompare(b.username));
+		} catch (e) {
+			console.error('Failed to load user details:', e);
+		} finally {
+			loadingUserDetails = false;
+		}
+	}
+
+	function formatLastLogin(lastLoginTime: string): string {
+		if (!lastLoginTime) return 'Never';
+		try {
+			const date = new Date(lastLoginTime);
+			return date.toLocaleString();
+		} catch {
+			return 'Invalid date';
+		}
+	}
+
+	// Reactive user filtering
+	$: userAccountMetrics = getUserAccountMetrics(metrics);
+	$: interactiveUsers = userDetails.filter((user) => user.can_login === 'true');
+	$: systemUsers = userDetails.filter((user) => user.can_login === 'false');
 	let networkSent5min = 0;
 	let networkRecv5min = 0;
 	let networkSent10min = 0;
@@ -820,6 +917,194 @@
 							<div class="text-base-content/50 text-sm">No GPU detected</div>
 						</div>
 					{/if}
+				</div>
+			</div>
+		{/if}
+
+		<!-- User Accounts Dashboard -->
+		{#if userAccountMetrics.total > 0}
+			<div class="card bg-base-100 border-base-200 border shadow-sm">
+				<div class="card-body">
+					<h3 class="card-title text-lg">User Accounts</h3>
+
+					<div class="mb-4">
+						<div class="mb-2 flex items-center justify-between">
+							<span class="text-sm font-medium">Account Security</span>
+							<span class="text-lg font-bold">
+								{getUserAccountHealthStatus(userAccountMetrics.loginable, userAccountMetrics.total)}
+							</span>
+						</div>
+						<div class="bg-base-300 h-3 w-full rounded-full">
+							<div
+								class="h-3 rounded-full bg-gradient-to-r {getUserAccountHealthColor(
+									userAccountMetrics.loginable,
+									userAccountMetrics.total
+								)} transition-all duration-300"
+								style="width: {(userAccountMetrics.loginable / userAccountMetrics.total) * 100}%"
+							></div>
+						</div>
+						<div class="mt-2 flex items-center justify-between text-sm">
+							<span class="text-base-content/70">Interactive Users</span>
+							<span class="text-base-content/70">
+								{((userAccountMetrics.loginable / userAccountMetrics.total) * 100).toFixed(1)}%
+							</span>
+						</div>
+					</div>
+
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Total Users</span>
+								<span class="text-lg font-bold">{userAccountMetrics.total}</span>
+							</div>
+							<div class="flex items-center gap-2">
+								<div class="text-xl">👥</div>
+								<span class="badge badge-neutral">All Accounts</span>
+							</div>
+						</div>
+
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Interactive</span>
+								<span class="text-lg font-bold text-orange-600">{userAccountMetrics.loginable}</span
+								>
+							</div>
+							<div class="flex items-center gap-2">
+								<div class="text-xl">🔓</div>
+								<span class="badge badge-warning">Login Capable</span>
+							</div>
+						</div>
+
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">System</span>
+								<span class="text-lg font-bold text-green-600"
+									>{userAccountMetrics.non_loginable}</span
+								>
+							</div>
+							<div class="flex items-center gap-2">
+								<div class="text-xl">🔒</div>
+								<span class="badge badge-success">Secure</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- User Details Drilldown -->
+					<div class="mt-4">
+						<button
+							class="btn btn-sm btn-outline w-full"
+							on:click={toggleUserDetails}
+							disabled={loadingUserDetails}
+						>
+							{#if loadingUserDetails}
+								<span class="loading loading-spinner loading-sm"></span>
+								Loading user details...
+							{:else if userDetailsExpanded}
+								<span class="text-sm">🔼</span>
+								Hide User Details
+							{:else}
+								<span class="text-sm">🔽</span>
+								Show User Details
+							{/if}
+						</button>
+
+						{#if userDetailsExpanded}
+							<div class="mt-4 space-y-4">
+								<!-- User Table -->
+								{#if userDetails.length > 0}
+									<div class="overflow-x-auto">
+										<table class="table-xs table">
+											<thead>
+												<tr>
+													<th>Username</th>
+													<th>UID</th>
+													<th>Shell</th>
+													<th>Home</th>
+													<th>Login</th>
+													<th>Last Login</th>
+												</tr>
+											</thead>
+											<tbody>
+												{#each userDetails as user}
+													<tr class="hover">
+														<td>
+															<div class="flex items-center gap-2">
+																<span class="text-sm">
+																	{user.can_login === 'true' ? '🔓' : '🔒'}
+																</span>
+																<span class="font-mono text-sm">{user.username}</span>
+															</div>
+														</td>
+														<td>
+															<span class="font-mono text-sm">{user.uid}</span>
+														</td>
+														<td>
+															<span
+																class="font-mono text-xs {user.shell?.includes('nologin')
+																	? 'text-success'
+																	: 'text-warning'}"
+															>
+																{user.shell}
+															</span>
+														</td>
+														<td>
+															<span class="text-base-content/70 font-mono text-xs">
+																{user.home}
+															</span>
+														</td>
+														<td>
+															<span
+																class="badge badge-xs {user.can_login === 'true'
+																	? 'badge-warning'
+																	: 'badge-success'}"
+															>
+																{user.can_login === 'true' ? 'Interactive' : 'System'}
+															</span>
+														</td>
+														<td>
+															<div class="text-xs">
+																{#if user.last_login_time}
+																	<div class="text-base-content/80">
+																		{formatLastLogin(user.last_login_time)}
+																	</div>
+																	{#if user.last_login_ip}
+																		<div class="text-base-content/60">
+																			{user.last_login_ip}
+																		</div>
+																	{/if}
+																{:else}
+																	<span class="text-base-content/50">Never</span>
+																{/if}
+															</div>
+														</td>
+													</tr>
+												{/each}
+											</tbody>
+										</table>
+									</div>
+								{:else}
+									<div class="py-8 text-center">
+										<div class="text-base-content/50">No user details available</div>
+									</div>
+								{/if}
+
+								<!-- User Statistics -->
+								<div class="bg-base-200 rounded-lg p-4">
+									<h4 class="mb-3 font-semibold">User Statistics</h4>
+									<div class="grid grid-cols-2 gap-4 text-sm">
+										<div>
+											<div class="text-base-content/70">Interactive Users</div>
+											<div class="text-warning text-lg font-bold">{interactiveUsers.length}</div>
+										</div>
+										<div>
+											<div class="text-base-content/70">System Users</div>
+											<div class="text-success text-lg font-bold">{systemUsers.length}</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						{/if}
+					</div>
 				</div>
 			</div>
 		{/if}

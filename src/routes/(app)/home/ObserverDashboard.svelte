@@ -402,6 +402,55 @@
 		return metrics;
 	}
 
+	// Helper function to get user account metrics
+	function getUserAccountMetrics(observer: ObserverWithMetrics): {
+		total?: number;
+		loginable?: number;
+		nonLoginable?: number;
+		hasAnyMetrics: boolean;
+	} {
+		const metrics = {
+			total: hasMetric(observer, 'user_total')
+				? getFirstMetricValue(observer, 'user_total').value
+				: undefined,
+			loginable: hasMetric(observer, 'user_loginable')
+				? getFirstMetricValue(observer, 'user_loginable').value
+				: undefined,
+			nonLoginable: hasMetric(observer, 'user_non_loginable')
+				? getFirstMetricValue(observer, 'user_non_loginable').value
+				: undefined,
+			hasAnyMetrics: false
+		};
+
+		// Check if any user account metrics exist
+		metrics.hasAnyMetrics =
+			metrics.total !== undefined ||
+			metrics.loginable !== undefined ||
+			metrics.nonLoginable !== undefined;
+
+		return metrics;
+	}
+
+	// Helper function to get user account security status
+	function getUserAccountSecurityStatus(
+		loginable: number,
+		total: number
+	): {
+		status: string;
+		color: string;
+		percentage: number;
+	} {
+		const percentage = (loginable / total) * 100;
+
+		if (percentage < 30) {
+			return { status: 'Secure', color: 'text-success', percentage };
+		} else if (percentage < 60) {
+			return { status: 'Moderate', color: 'text-warning', percentage };
+		} else {
+			return { status: 'Review', color: 'text-error', percentage };
+		}
+	}
+
 	// Helper function to get GPU metrics
 	function getGpuMetrics(observer: ObserverWithMetrics): {
 		count?: number;
@@ -728,6 +777,59 @@
 														>
 													</span>
 												{/if}
+											</div>
+										{/if}
+									</div>
+								</div>
+							</div>
+						{/if}
+
+						<!-- User Accounts -->
+						{#if getUserAccountMetrics(o).hasAnyMetrics}
+							{@const userMetrics = getUserAccountMetrics(o)}
+							<div class="mb-3">
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-2 flex items-center gap-1">
+										<span class="text-sm">👤</span>
+										<span class="text-xs font-medium">User Accounts</span>
+									</div>
+									<div class="space-y-1 text-xs">
+										<div class="flex flex-wrap gap-2">
+											{#if userMetrics.total !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-base-content/80">👥</span>
+													<span class="text-base-content/80">Total: {userMetrics.total}</span>
+												</span>
+											{/if}
+											{#if userMetrics.loginable !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-warning">🔓</span>
+													<span class="text-warning">Interactive: {userMetrics.loginable}</span>
+												</span>
+											{/if}
+											{#if userMetrics.nonLoginable !== undefined}
+												<span class="flex items-center gap-1">
+													<span class="text-success">🔒</span>
+													<span class="text-success">System: {userMetrics.nonLoginable}</span>
+												</span>
+											{/if}
+										</div>
+										{#if userMetrics.total !== undefined && userMetrics.loginable !== undefined}
+											{@const securityStatus = getUserAccountSecurityStatus(
+												userMetrics.loginable,
+												userMetrics.total
+											)}
+											<div class="mt-2 flex items-center gap-2">
+												<span class="flex items-center gap-1">
+													<span class="text-info">🛡️</span>
+													<span class="text-info text-xs">Security: </span>
+													<span class="text-xs font-medium {securityStatus.color}"
+														>{securityStatus.status}</span
+													>
+												</span>
+												<span class="text-base-content/60 text-xs">
+													({securityStatus.percentage.toFixed(1)}% interactive)
+												</span>
 											</div>
 										{/if}
 									</div>

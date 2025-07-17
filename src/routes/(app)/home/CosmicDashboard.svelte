@@ -35,12 +35,20 @@
 		gpu_total_memory_total_mb: number;
 		gpu_total_power_draw_watts: number;
 		gpu_average_temperature_celsius: number;
+		// User account metrics
+		user_total: number;
+		user_loginable: number;
+		user_non_loginable: number;
 	}
 
 	let summary: CosmicSystemSummary | null = null;
 	let loading = false;
 	let error = '';
 	let initialized = false;
+	let userDetailsExpanded = false;
+	let showAllUsers = false;
+	let userDetails: any[] = [];
+	let loadingUserDetails = false;
 
 	// Re-fetch summary when tenant changes
 	$: if ($selectedTenant && initialized) {
@@ -171,6 +179,20 @@
 		return 'badge-error';
 	}
 
+	function getUserAccountHealthColor(loginable: number, total: number): string {
+		const ratio = loginable / total;
+		if (ratio < 0.3) return 'from-green-500 to-emerald-600';
+		if (ratio < 0.6) return 'from-yellow-500 to-orange-600';
+		return 'from-red-500 to-rose-600';
+	}
+
+	function getUserAccountHealthStatus(loginable: number, total: number): string {
+		const ratio = loginable / total;
+		if (ratio < 0.3) return 'Secure';
+		if (ratio < 0.6) return 'Moderate';
+		return 'Review';
+	}
+
 	async function fetchCosmicSummary() {
 		loading = true;
 		error = '';
@@ -187,6 +209,82 @@
 			loading = false;
 		}
 	}
+
+	async function fetchUserDetails() {
+		if (!summary || !$selectedTenant) return [];
+
+		try {
+			// Fetch observer list first
+			const observersRes = await apiGet<any[]>('/api/observer/dashboard');
+			if (!observersRes.success) return [];
+
+			const allUsers = new Map();
+
+			// Fetch user details from each observer
+			for (const observer of observersRes.data) {
+				try {
+					const historyRes = await apiGet<any>(`/api/observer/${observer.id}/history`);
+					if (historyRes.success && historyRes.data.metrics?.user_account) {
+						for (const userMetric of historyRes.data.metrics.user_account) {
+							const labels = userMetric.labels;
+							if (labels?.username) {
+								// Use username as unique key for deduplication
+								allUsers.set(labels.username, {
+									username: labels.username,
+									uid: labels.uid,
+									shell: labels.shell,
+									home: labels.home,
+									can_login: labels.can_login,
+									last_login_ip: labels.last_login_ip,
+									last_login_time: labels.last_login_time,
+									observer_id: observer.id,
+									observer_name: observer.name
+								});
+							}
+						}
+					}
+				} catch (e) {
+					console.warn(`Failed to fetch user details for observer ${observer.id}:`, e);
+				}
+			}
+
+			return Array.from(allUsers.values()).sort((a, b) => a.username.localeCompare(b.username));
+		} catch (e) {
+			console.error('Failed to fetch user details:', e);
+			return [];
+		}
+	}
+
+	async function toggleUserDetails() {
+		userDetailsExpanded = !userDetailsExpanded;
+		if (userDetailsExpanded && userDetails.length === 0) {
+			loadingUserDetails = true;
+			userDetails = await fetchUserDetails();
+			loadingUserDetails = false;
+		}
+	}
+
+	function formatLastLogin(lastLoginTime: string): string {
+		if (!lastLoginTime) return 'Never';
+		try {
+			const date = new Date(lastLoginTime);
+			return date.toLocaleString();
+		} catch {
+			return 'Invalid date';
+		}
+	}
+
+	$: filteredUsers = userDetails.filter(
+		(user) => showAllUsers || user.can_login === 'true' || user.can_login === true
+	);
+
+	$: interactiveUsers = userDetails.filter(
+		(user) => user.can_login === 'true' || user.can_login === true
+	);
+
+	$: systemUsers = userDetails.filter(
+		(user) => user.can_login === 'false' || user.can_login === false
+	);
 
 	onMount(async () => {
 		initialized = true;
@@ -446,6 +544,31 @@
 										: 'N/A'}
 								</div>
 								<div class="opacity-80">Temp</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
+
+			<!-- User Accounts -->
+			{#if summary.user_total > 0}
+				<div class="card bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-xl">
+					<div class="card-body">
+						<div class="flex items-center justify-between">
+							<div class="text-3xl">👤</div>
+							<div class="text-right">
+								<div class="text-2xl font-bold">{summary.user_total}</div>
+								<div class="text-sm opacity-80">User{summary.user_total > 1 ? 's' : ''}</div>
+							</div>
+						</div>
+						<div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+							<div class="rounded bg-white/20 p-2 text-center">
+								<div class="font-bold text-green-300">{summary.user_loginable}</div>
+								<div class="opacity-80">Interactive</div>
+							</div>
+							<div class="rounded bg-white/20 p-2 text-center">
+								<div class="font-bold text-blue-300">{summary.user_non_loginable}</div>
+								<div class="opacity-80">System</div>
 							</div>
 						</div>
 					</div>
@@ -788,6 +911,230 @@
 						{:else}
 							<div class="bg-base-200 rounded-lg p-4 text-center">
 								<div class="text-base-content/50 text-sm">No GPU memory data available</div>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		<!-- User Accounts -->
+		{#if summary.user_total > 0}
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="mb-4 flex items-center gap-3">
+						<div class="text-3xl">👤</div>
+						<div>
+							<h3 class="text-xl font-bold">User Accounts</h3>
+							<p class="text-base-content/70">
+								System and interactive user accounts across the cosmic network
+							</p>
+						</div>
+					</div>
+
+					<div class="mb-4">
+						<div class="mb-2 flex items-center justify-between">
+							<span class="text-sm font-medium">Account Security</span>
+							<span class="text-lg font-bold">
+								{getUserAccountHealthStatus(summary.user_loginable, summary.user_total)}
+							</span>
+						</div>
+						<div class="bg-base-300 h-3 w-full rounded-full">
+							<div
+								class="h-3 rounded-full bg-gradient-to-r {getUserAccountHealthColor(
+									summary.user_loginable,
+									summary.user_total
+								)} transition-all duration-300"
+								style="width: {(summary.user_loginable / summary.user_total) * 100}%"
+							></div>
+						</div>
+						<div class="mt-2 flex items-center justify-between text-sm">
+							<span class="text-base-content/70">Interactive Users</span>
+							<span class="text-base-content/70">
+								{((summary.user_loginable / summary.user_total) * 100).toFixed(1)}%
+							</span>
+						</div>
+					</div>
+
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Total Users</span>
+								<span class="text-lg font-bold">{summary.user_total}</span>
+							</div>
+							<div class="flex items-center gap-2">
+								<div class="text-xl">👥</div>
+								<span class="badge badge-neutral">All Accounts</span>
+							</div>
+						</div>
+
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Interactive</span>
+								<span class="text-lg font-bold text-orange-600">{summary.user_loginable}</span>
+							</div>
+							<div class="flex items-center gap-2">
+								<div class="text-xl">🔓</div>
+								<span class="badge badge-warning">Login Capable</span>
+							</div>
+						</div>
+
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">System</span>
+								<span class="text-lg font-bold text-green-600">{summary.user_non_loginable}</span>
+							</div>
+							<div class="flex items-center gap-2">
+								<div class="text-xl">🔒</div>
+								<span class="badge badge-success">Secure</span>
+							</div>
+						</div>
+					</div>
+
+					<!-- User Details Drilldown -->
+					<div class="mt-4">
+						<button
+							class="btn btn-sm btn-outline w-full"
+							on:click={toggleUserDetails}
+							disabled={loadingUserDetails}
+						>
+							{#if loadingUserDetails}
+								<span class="loading loading-spinner loading-sm"></span>
+								Loading user details...
+							{:else if userDetailsExpanded}
+								<span class="text-sm">🔼</span>
+								Hide User Details
+							{:else}
+								<span class="text-sm">🔽</span>
+								Show User Details
+							{/if}
+						</button>
+
+						{#if userDetailsExpanded}
+							<div class="mt-4 space-y-4">
+								<!-- Filter Controls -->
+								<div class="flex items-center gap-4">
+									<label class="label cursor-pointer">
+										<input
+											type="checkbox"
+											class="checkbox checkbox-sm"
+											bind:checked={showAllUsers}
+										/>
+										<span class="label-text ml-2">Show all users</span>
+									</label>
+									<div class="text-base-content/70 text-sm">
+										Showing {filteredUsers.length} of {userDetails.length} users
+									</div>
+								</div>
+
+								<!-- User Table -->
+								{#if filteredUsers.length > 0}
+									<div class="overflow-x-auto">
+										<table class="table-xs table">
+											<thead>
+												<tr>
+													<th>Username</th>
+													<th>UID</th>
+													<th>Shell</th>
+													<th>Home</th>
+													<th>Login</th>
+													<th>Last Login</th>
+													<th>Observer</th>
+												</tr>
+											</thead>
+											<tbody>
+												{#each filteredUsers as user}
+													<tr class="hover">
+														<td>
+															<div class="flex items-center gap-2">
+																<span class="text-sm">
+																	{user.can_login === 'true' || user.can_login === true
+																		? '🔓'
+																		: '🔒'}
+																</span>
+																<span class="font-mono text-sm">{user.username}</span>
+															</div>
+														</td>
+														<td>
+															<span class="font-mono text-sm">{user.uid}</span>
+														</td>
+														<td>
+															<span
+																class="font-mono text-xs {user.shell?.includes('nologin')
+																	? 'text-success'
+																	: 'text-warning'}"
+															>
+																{user.shell || 'N/A'}
+															</span>
+														</td>
+														<td>
+															<span class="text-base-content/70 font-mono text-xs">
+																{user.home || 'N/A'}
+															</span>
+														</td>
+														<td>
+															<span
+																class="badge badge-xs {user.can_login === 'true' ||
+																user.can_login === true
+																	? 'badge-warning'
+																	: 'badge-success'}"
+															>
+																{user.can_login === 'true' || user.can_login === true
+																	? 'Interactive'
+																	: 'System'}
+															</span>
+														</td>
+														<td>
+															<div class="text-xs">
+																{#if user.last_login_time}
+																	<div class="text-base-content/80">
+																		{formatLastLogin(user.last_login_time)}
+																	</div>
+																	{#if user.last_login_ip}
+																		<div class="text-base-content/60">
+																			{user.last_login_ip}
+																		</div>
+																	{/if}
+																{:else}
+																	<span class="text-base-content/50">Never</span>
+																{/if}
+															</div>
+														</td>
+														<td>
+															<span class="text-base-content/70 text-xs">
+																{user.observer_name || user.observer_id}
+															</span>
+														</td>
+													</tr>
+												{/each}
+											</tbody>
+										</table>
+									</div>
+								{:else}
+									<div class="py-8 text-center">
+										<div class="text-base-content/50">
+											{showAllUsers ? 'No users found' : 'No interactive users found'}
+										</div>
+									</div>
+								{/if}
+
+								<!-- User Statistics -->
+								<div class="bg-base-200 rounded-lg p-4">
+									<h4 class="mb-3 font-semibold">User Statistics</h4>
+									<div class="grid grid-cols-2 gap-4 text-sm">
+										<div>
+											<div class="text-base-content/70">Interactive Users</div>
+											<div class="text-warning text-lg font-bold">{interactiveUsers.length}</div>
+										</div>
+										<div>
+											<div class="text-base-content/70">System Users</div>
+											<div class="text-success text-lg font-bold">{systemUsers.length}</div>
+										</div>
+									</div>
+									<div class="text-base-content/60 mt-3 text-xs">
+										* Users are deduplicated across observers by username
+									</div>
+								</div>
 							</div>
 						{/if}
 					</div>
