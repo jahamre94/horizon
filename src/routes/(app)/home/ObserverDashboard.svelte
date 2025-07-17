@@ -402,6 +402,62 @@
 		return metrics;
 	}
 
+	// Helper function to get GPU metrics
+	function getGpuMetrics(observer: ObserverWithMetrics): {
+		count?: number;
+		memoryUsedMb?: number;
+		memoryTotalMb?: number;
+		powerDrawWatts?: number;
+		temperatureCelsius?: number;
+		hasAnyMetrics: boolean;
+	} {
+		const metrics = {
+			count: hasMetric(observer, 'gpu_count')
+				? getFirstMetricValue(observer, 'gpu_count').value
+				: undefined,
+			memoryUsedMb: hasMetric(observer, 'gpu_memory_used_mb')
+				? getFirstMetricValue(observer, 'gpu_memory_used_mb').value
+				: undefined,
+			memoryTotalMb: hasMetric(observer, 'gpu_memory_total_mb')
+				? getFirstMetricValue(observer, 'gpu_memory_total_mb').value
+				: undefined,
+			powerDrawWatts: hasMetric(observer, 'gpu_power_draw_watts')
+				? getFirstMetricValue(observer, 'gpu_power_draw_watts').value
+				: undefined,
+			temperatureCelsius: hasMetric(observer, 'gpu_temperature_celsius')
+				? getFirstMetricValue(observer, 'gpu_temperature_celsius').value
+				: undefined,
+			hasAnyMetrics: false
+		};
+
+		// Check if any GPU metrics exist
+		metrics.hasAnyMetrics =
+			metrics.count !== undefined ||
+			metrics.memoryUsedMb !== undefined ||
+			metrics.memoryTotalMb !== undefined ||
+			metrics.powerDrawWatts !== undefined ||
+			metrics.temperatureCelsius !== undefined;
+
+		return metrics;
+	}
+
+	// Helper function to get GPU temperature color
+	function getGpuTempColor(temp: number): string {
+		if (temp < 70) return 'text-success';
+		if (temp < 85) return 'text-warning';
+		return 'text-error';
+	}
+
+	// Helper function to get GPU memory usage percentage
+	function getGpuMemoryUsagePercent(used: number, total: number): number {
+		return total > 0 ? (used / total) * 100 : 0;
+	}
+
+	// Helper function to format GPU memory
+	function formatGpuMemory(mb: number): string {
+		return (mb / 1024).toFixed(1) + ' GB';
+	}
+
 	async function fetchObservers() {
 		loading = true;
 		error = '';
@@ -799,6 +855,72 @@
 								</div>
 							{/if}
 						</div>
+
+						<!-- GPU Metrics -->
+						{#if getGpuMetrics(o).hasAnyMetrics}
+							{@const gpuMetrics = getGpuMetrics(o)}
+							<div class="mb-3">
+								<div class="bg-base-200 rounded-lg p-2">
+									<div class="mb-2 flex items-center gap-1">
+										<span class="text-sm">🎮</span>
+										<span class="text-xs font-medium">GPU</span>
+									</div>
+									<div class="grid grid-cols-2 gap-2 text-xs">
+										{#if gpuMetrics.count !== undefined}
+											<div class="flex items-center gap-1">
+												<span class="text-primary">📊</span>
+												<span class="text-primary">Count: {gpuMetrics.count}</span>
+											</div>
+										{/if}
+										{#if gpuMetrics.temperatureCelsius !== undefined}
+											<div class="flex items-center gap-1">
+												<span class="text-accent">🌡️</span>
+												<span class={getGpuTempColor(gpuMetrics.temperatureCelsius)}>
+													{gpuMetrics.temperatureCelsius.toFixed(1)}°C
+												</span>
+											</div>
+										{/if}
+										{#if gpuMetrics.memoryUsedMb !== undefined && gpuMetrics.memoryTotalMb !== undefined}
+											<div class="col-span-2">
+												<div class="flex items-center justify-between">
+													<span class="text-xs">Memory</span>
+													<span class="text-xs font-bold">
+														{getGpuMemoryUsagePercent(
+															gpuMetrics.memoryUsedMb,
+															gpuMetrics.memoryTotalMb
+														).toFixed(1)}%
+													</span>
+												</div>
+												<div class="bg-base-300 h-1.5 w-full rounded-full">
+													<div
+														class="h-1.5 rounded-full transition-all duration-300 {getGpuMemoryUsagePercent(
+															gpuMetrics.memoryUsedMb,
+															gpuMetrics.memoryTotalMb
+														) < 70
+															? 'bg-success'
+															: getGpuMemoryUsagePercent(
+																		gpuMetrics.memoryUsedMb,
+																		gpuMetrics.memoryTotalMb
+																  ) < 85
+																? 'bg-warning'
+																: 'bg-error'}"
+														style="width: {getGpuMemoryUsagePercent(
+															gpuMetrics.memoryUsedMb,
+															gpuMetrics.memoryTotalMb
+														)}%"
+													></div>
+												</div>
+												<div class="text-base-content/60 text-xs">
+													{formatGpuMemory(gpuMetrics.memoryUsedMb)} / {formatGpuMemory(
+														gpuMetrics.memoryTotalMb
+													)}
+												</div>
+											</div>
+										{/if}
+									</div>
+								</div>
+							</div>
+						{/if}
 
 						<!-- Disk Usage (simplified) -->
 						<div class="mb-3">

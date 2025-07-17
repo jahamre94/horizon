@@ -29,6 +29,12 @@
 		qemu_vms_unknown: number;
 		qemu_total_vcpus: number;
 		qemu_total_memory_mb: number;
+		// GPU metrics
+		gpu_count: number;
+		gpu_total_memory_used_mb: number;
+		gpu_total_memory_total_mb: number;
+		gpu_total_power_draw_watts: number;
+		gpu_average_temperature_celsius: number;
 	}
 
 	let summary: CosmicSystemSummary | null = null;
@@ -137,6 +143,32 @@
 		if (ratio >= 0.8) return 'Healthy';
 		if (ratio >= 0.6) return 'Warning';
 		return 'Critical';
+	}
+
+	function formatGpuMemory(mb: number): string {
+		return formatBytes(mb * 1024 * 1024);
+	}
+
+	function getGpuTempColor(temp: number): string {
+		if (temp < 70) return 'text-success';
+		if (temp < 85) return 'text-warning';
+		return 'text-error';
+	}
+
+	function getGpuTempBadgeColor(temp: number): string {
+		if (temp < 70) return 'badge-success';
+		if (temp < 85) return 'badge-warning';
+		return 'badge-error';
+	}
+
+	function getGpuMemoryUsagePercent(used: number, total: number): number {
+		return total > 0 ? (used / total) * 100 : 0;
+	}
+
+	function getGpuMemoryColor(usedPercent: number): string {
+		if (usedPercent < 70) return 'badge-success';
+		if (usedPercent < 85) return 'badge-warning';
+		return 'badge-error';
 	}
 
 	async function fetchCosmicSummary() {
@@ -339,7 +371,7 @@
 					<div class="flex items-center justify-between">
 						<div class="text-3xl">🌡️</div>
 						<div class="text-right">
-							<div class="text-2xl font-bold">{summary.avg_temp_celsius}°C</div>
+							<div class="text-2xl font-bold">{summary.avg_temp_celsius.toFixed(1)}°C</div>
 							<div class="text-sm opacity-80">Avg Temperature</div>
 						</div>
 					</div>
@@ -386,6 +418,39 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- GPU Systems -->
+			{#if summary.gpu_count > 0}
+				<div class="card bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-xl">
+					<div class="card-body">
+						<div class="flex items-center justify-between">
+							<div class="text-3xl">🎮</div>
+							<div class="text-right">
+								<div class="text-2xl font-bold">{summary.gpu_count}</div>
+								<div class="text-sm opacity-80">GPU{summary.gpu_count > 1 ? 's' : ''}</div>
+							</div>
+						</div>
+						<div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+							<div class="rounded bg-white/20 p-2 text-center">
+								<div class="font-bold text-green-300">
+									{summary.gpu_total_memory_total_mb > 0
+										? formatGpuMemory(summary.gpu_total_memory_used_mb)
+										: 'N/A'}
+								</div>
+								<div class="opacity-80">Memory</div>
+							</div>
+							<div class="rounded bg-white/20 p-2 text-center">
+								<div class="font-bold text-blue-300">
+									{summary.gpu_average_temperature_celsius > 0
+										? summary.gpu_average_temperature_celsius.toFixed(1) + '°C'
+										: 'N/A'}
+								</div>
+								<div class="opacity-80">Temp</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			{/if}
 		</div>
 
 		<!-- Detailed Metrics -->
@@ -617,6 +682,118 @@
 				</div>
 			</div>
 		</div>
+
+		<!-- GPU Systems -->
+		{#if summary.gpu_count > 0}
+			<div class="card bg-base-100 shadow-xl">
+				<div class="card-body">
+					<div class="mb-4 flex items-center gap-3">
+						<div class="text-3xl">🎮</div>
+						<div>
+							<h3 class="text-xl font-bold">GPU Systems</h3>
+							<p class="text-base-content/70">
+								Graphics processing units across the cosmic network
+							</p>
+						</div>
+					</div>
+
+					<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">GPU Count</span>
+								<span class="text-lg font-bold">{summary.gpu_count}</span>
+							</div>
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Power Draw</span>
+								<span class="text-lg font-bold">
+									{summary.gpu_total_power_draw_watts > 0
+										? summary.gpu_total_power_draw_watts + 'W'
+										: 'N/A'}
+								</span>
+							</div>
+						</div>
+
+						<div class="bg-base-200 rounded-lg p-4">
+							<div class="mb-2 flex items-center justify-between">
+								<span class="text-sm font-medium">Temperature</span>
+								<span
+									class="text-lg font-bold {summary.gpu_average_temperature_celsius > 0
+										? getGpuTempColor(summary.gpu_average_temperature_celsius)
+										: 'text-base-content/50'}"
+								>
+									{summary.gpu_average_temperature_celsius > 0
+										? summary.gpu_average_temperature_celsius.toFixed(1) + '°C'
+										: 'N/A'}
+								</span>
+							</div>
+							{#if summary.gpu_average_temperature_celsius > 0}
+								<div class="bg-base-300 h-2 w-full rounded-full">
+									<div
+										class="h-2 rounded-full transition-all duration-300 {summary.gpu_average_temperature_celsius <
+										70
+											? 'bg-success'
+											: summary.gpu_average_temperature_celsius < 85
+												? 'bg-warning'
+												: 'bg-error'}"
+										style="width: {Math.min(
+											(summary.gpu_average_temperature_celsius / 100) * 100,
+											100
+										)}%"
+									></div>
+								</div>
+							{/if}
+						</div>
+					</div>
+
+					<div class="space-y-4">
+						{#if summary.gpu_total_memory_total_mb > 0}
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-3 flex items-center justify-between">
+									<span class="text-sm font-medium">Memory Usage</span>
+									<span class="text-lg font-bold">
+										{getGpuMemoryUsagePercent(
+											summary.gpu_total_memory_used_mb,
+											summary.gpu_total_memory_total_mb
+										).toFixed(1)}%
+									</span>
+								</div>
+								<div class="bg-base-300 h-3 w-full rounded-full">
+									<div
+										class="h-3 rounded-full transition-all duration-300 {getGpuMemoryUsagePercent(
+											summary.gpu_total_memory_used_mb,
+											summary.gpu_total_memory_total_mb
+										) < 70
+											? 'bg-success'
+											: getGpuMemoryUsagePercent(
+														summary.gpu_total_memory_used_mb,
+														summary.gpu_total_memory_total_mb
+												  ) < 85
+												? 'bg-warning'
+												: 'bg-error'}"
+										style="width: {getGpuMemoryUsagePercent(
+											summary.gpu_total_memory_used_mb,
+											summary.gpu_total_memory_total_mb
+										)}%"
+									></div>
+								</div>
+								<div class="mt-2 flex items-center justify-between text-sm">
+									<span class="text-base-content/70"
+										>Used: {formatGpuMemory(summary.gpu_total_memory_used_mb)}</span
+									>
+									<span class="text-base-content/70"
+										>Total: {formatGpuMemory(summary.gpu_total_memory_total_mb)}</span
+									>
+								</div>
+							</div>
+						{:else}
+							<div class="bg-base-200 rounded-lg p-4 text-center">
+								<div class="text-base-content/50 text-sm">No GPU memory data available</div>
+							</div>
+						{/if}
+					</div>
+				</div>
+			</div>
+		{/if}
 
 		<!-- System Uptime -->
 		<div class="card bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-xl">

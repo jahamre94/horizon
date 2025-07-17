@@ -64,7 +64,13 @@
 		qemu_vm_disk_read_bytes: { unit: 'Bytes', color: '#06b6d4', title: 'VM Disk Read' },
 		qemu_vm_disk_write_bytes: { unit: 'Bytes', color: '#f59e0b', title: 'VM Disk Write' },
 		qemu_vm_network_rx_bytes: { unit: 'Bytes', color: '#8b5cf6', title: 'VM Network RX' },
-		qemu_vm_network_tx_bytes: { unit: 'Bytes', color: '#ef4444', title: 'VM Network TX' }
+		qemu_vm_network_tx_bytes: { unit: 'Bytes', color: '#ef4444', title: 'VM Network TX' },
+		// GPU metrics
+		gpu_count: { unit: '', color: '#22c55e', title: 'GPU Count' },
+		gpu_memory_used_mb: { unit: 'MB', color: '#10b981', title: 'GPU Memory Used' },
+		gpu_memory_total_mb: { unit: 'MB', color: '#06b6d4', title: 'GPU Memory Total' },
+		gpu_power_draw_watts: { unit: 'W', color: '#f59e0b', title: 'GPU Power Draw' },
+		gpu_temperature_celsius: { unit: '°C', color: '#f97316', title: 'GPU Temperature' }
 	};
 
 	async function fetchMetrics(hours: number) {
@@ -417,6 +423,11 @@
 		);
 		return { data, vmNames };
 	}
+
+	// Check if GPU metrics are available
+	function hasGpuMetrics(metrics: Record<string, MetricSnapshot[]>): boolean {
+		return Object.keys(metrics).some((key) => key.startsWith('gpu_'));
+	}
 </script>
 
 <svelte:head>
@@ -733,6 +744,82 @@
 							</div>
 						{/if}
 					</div>
+				</div>
+			</div>
+		{/if}
+
+		<!-- GPU Metrics Dashboard -->
+		{#if availableMetrics.some((metric) => metric.startsWith('gpu_'))}
+			<div class="card bg-base-100 border-base-200 border shadow-sm">
+				<div class="card-body">
+					<h3 class="card-title text-lg">GPU Metrics</h3>
+
+					{#if hasGpuMetrics(metrics)}
+						<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+							{#if metrics.gpu_count && metrics.gpu_count.length > 0}
+								<div class="bg-base-200 rounded-lg p-4 text-center">
+									<div class="mb-2 text-2xl">🎮</div>
+									<div class="text-lg font-bold">{metrics.gpu_count[0].value}</div>
+									<div class="text-base-content/70 text-sm">GPU Count</div>
+								</div>
+							{/if}
+
+							{#if metrics.gpu_memory_used_mb && metrics.gpu_memory_total_mb && metrics.gpu_memory_used_mb.length > 0 && metrics.gpu_memory_total_mb.length > 0}
+								{@const memoryUsed = metrics.gpu_memory_used_mb[0].value}
+								{@const memoryTotal = metrics.gpu_memory_total_mb[0].value}
+								{@const memoryPercent = (memoryUsed / memoryTotal) * 100}
+								<div class="bg-base-200 rounded-lg p-4">
+									<div class="mb-2 text-center">
+										<div class="text-lg font-bold">{memoryPercent.toFixed(1)}%</div>
+										<div class="text-base-content/70 text-sm">Memory Usage</div>
+									</div>
+									<div class="bg-base-300 h-2 w-full rounded-full">
+										<div
+											class="h-2 rounded-full transition-all duration-300 {memoryPercent < 70
+												? 'bg-success'
+												: memoryPercent < 85
+													? 'bg-warning'
+													: 'bg-error'}"
+											style="width: {memoryPercent}%"
+										></div>
+									</div>
+									<div class="text-base-content/60 mt-1 text-center text-xs">
+										{(memoryUsed / 1024).toFixed(1)} GB / {(memoryTotal / 1024).toFixed(1)} GB
+									</div>
+								</div>
+							{/if}
+
+							{#if metrics.gpu_power_draw_watts && metrics.gpu_power_draw_watts.length > 0}
+								<div class="bg-base-200 rounded-lg p-4 text-center">
+									<div class="mb-2 text-2xl">⚡</div>
+									<div class="text-lg font-bold">{metrics.gpu_power_draw_watts[0].value}W</div>
+									<div class="text-base-content/70 text-sm">Power Draw</div>
+								</div>
+							{/if}
+
+							{#if metrics.gpu_temperature_celsius && metrics.gpu_temperature_celsius.length > 0}
+								{@const temp = metrics.gpu_temperature_celsius[0].value}
+								<div class="bg-base-200 rounded-lg p-4 text-center">
+									<div class="mb-2 text-2xl">🌡️</div>
+									<div
+										class="text-lg font-bold {temp < 70
+											? 'text-success'
+											: temp < 85
+												? 'text-warning'
+												: 'text-error'}"
+									>
+										{temp.toFixed(1)}°C
+									</div>
+									<div class="text-base-content/70 text-sm">Temperature</div>
+								</div>
+							{/if}
+						</div>
+					{:else}
+						<div class="py-8 text-center">
+							<div class="mb-2 text-4xl">🎮</div>
+							<div class="text-base-content/50 text-sm">No GPU detected</div>
+						</div>
+					{/if}
 				</div>
 			</div>
 		{/if}
