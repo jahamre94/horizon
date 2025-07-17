@@ -235,8 +235,6 @@
 									shell: labels.shell,
 									home: labels.home,
 									can_login: labels.can_login,
-									last_login_ip: labels.last_login_ip,
-									last_login_time: labels.last_login_time,
 									observer_id: observer.id,
 									observer_name: observer.name
 								});
@@ -261,16 +259,6 @@
 			loadingUserDetails = true;
 			userDetails = await fetchUserDetails();
 			loadingUserDetails = false;
-		}
-	}
-
-	function formatLastLogin(lastLoginTime: string): string {
-		if (!lastLoginTime) return 'Never';
-		try {
-			const date = new Date(lastLoginTime);
-			return date.toLocaleString();
-		} catch {
-			return 'Invalid date';
 		}
 	}
 
@@ -1038,7 +1026,6 @@
 													<th>Shell</th>
 													<th>Home</th>
 													<th>Login</th>
-													<th>Last Login</th>
 													<th>Observer</th>
 												</tr>
 											</thead>
@@ -1083,22 +1070,6 @@
 																	? 'Interactive'
 																	: 'System'}
 															</span>
-														</td>
-														<td>
-															<div class="text-xs">
-																{#if user.last_login_time}
-																	<div class="text-base-content/80">
-																		{formatLastLogin(user.last_login_time)}
-																	</div>
-																	{#if user.last_login_ip}
-																		<div class="text-base-content/60">
-																			{user.last_login_ip}
-																		</div>
-																	{/if}
-																{:else}
-																	<span class="text-base-content/50">Never</span>
-																{/if}
-															</div>
 														</td>
 														<td>
 															<span class="text-base-content/70 text-xs">
