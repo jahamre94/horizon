@@ -114,3 +114,34 @@ export async function maybeRefresh() {
 		await refreshTokens();
 	}
 }
+
+export async function changePassword(currentPassword: string, newPassword: string): Promise<{ success: boolean; error?: string }> {
+	try {
+		const token = localStorage.getItem('access_token');
+		if (!token) {
+			return { success: false, error: 'No authentication token found' };
+		}
+
+		const res = await fetch('/api/change_password', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'Authorization': `Bearer ${token}`
+			},
+			body: JSON.stringify({
+				current_password: currentPassword,
+				new_password: newPassword
+			})
+		});
+
+		if (!res.ok) {
+			const msg = await res.text();
+			return { success: false, error: msg };
+		}
+
+		const data = await res.json();
+		return { success: true };
+	} catch (err) {
+		return { success: false, error: 'Network error' };
+	}
+}

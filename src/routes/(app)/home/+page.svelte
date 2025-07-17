@@ -1,13 +1,16 @@
 <script lang="ts">
+	import { onMount, onDestroy } from 'svelte';
 	import ObserverDashboard from './ObserverDashboard.svelte';
 	import CosmicDashboard from './CosmicDashboard.svelte';
+	import {
+		selectedDashboard,
+		autoRefreshInterval,
+		autoRefreshEnabled,
+		type DashboardType
+	} from '$lib/stores/dashboard';
 
-	// Dashboard types
-	type DashboardType = 'observer' | 'cosmic';
-
-	// Set default dashboard
-	let selectedDashboard: DashboardType = 'observer';
 	let loading = false;
+	let refreshInterval: NodeJS.Timeout | null = null;
 
 	// Dashboard configuration
 	const dashboards = [
@@ -25,19 +28,66 @@
 		}
 	];
 
+	// Auto-refresh interval options
+	const intervalOptions = [
+		{ value: 10, label: '10 seconds' },
+		{ value: 30, label: '30 seconds' },
+		{ value: 60, label: '1 minute' },
+		{ value: 120, label: '2 minutes' },
+		{ value: 300, label: '5 minutes' },
+		{ value: 600, label: '10 minutes' }
+	];
+
 	// References to dashboard components
 	let observerDashboard: ObserverDashboard;
 	let cosmicDashboard: CosmicDashboard;
 
+	// Initialize stores on mount
+	onMount(() => {
+		selectedDashboard.init();
+		autoRefreshInterval.init();
+		autoRefreshEnabled.init();
+
+		// Set up auto-refresh
+		setupAutoRefresh();
+	});
+
+	// Clean up interval on destroy
+	onDestroy(() => {
+		if (refreshInterval) {
+			clearInterval(refreshInterval);
+		}
+	});
+
+	// Setup auto-refresh functionality
+	function setupAutoRefresh() {
+		// Clear existing interval
+		if (refreshInterval) {
+			clearInterval(refreshInterval);
+		}
+
+		// Only setup if enabled
+		if ($autoRefreshEnabled) {
+			refreshInterval = setInterval(() => {
+				refreshCurrentDashboard();
+			}, $autoRefreshInterval * 1000);
+		}
+	}
+
+	// Reactive setup when settings change
+	$: {
+		setupAutoRefresh();
+	}
+
 	function switchDashboard(dashboardType: DashboardType) {
-		selectedDashboard = dashboardType;
+		selectedDashboard.set(dashboardType);
 	}
 
 	function refreshCurrentDashboard() {
 		loading = true;
-		if (selectedDashboard === 'observer' && observerDashboard) {
+		if ($selectedDashboard === 'observer' && observerDashboard) {
 			observerDashboard.refresh();
-		} else if (selectedDashboard === 'cosmic' && cosmicDashboard) {
+		} else if ($selectedDashboard === 'cosmic' && cosmicDashboard) {
 			cosmicDashboard.refresh();
 		}
 		// Reset loading state after a short delay
@@ -46,8 +96,18 @@
 		}, 500);
 	}
 
+	function toggleAutoRefresh() {
+		autoRefreshEnabled.set(!$autoRefreshEnabled);
+	}
+
+	function changeRefreshInterval(event: Event) {
+		const target = event.target as HTMLSelectElement;
+		const interval = parseInt(target.value);
+		autoRefreshInterval.set(interval);
+	}
+
 	// Get current dashboard info
-	$: currentDashboard = dashboards.find((d) => d.id === selectedDashboard);
+	$: currentDashboard = dashboards.find((d) => d.id === $selectedDashboard);
 </script>
 
 <div class="space-y-6">
@@ -65,7 +125,7 @@
 			<div class="tabs tabs-boxed">
 				{#each dashboards as dashboard}
 					<button
-						class="tab {selectedDashboard === dashboard.id ? 'tab-active' : ''}"
+						class="tab {$selectedDashboard === dashboard.id ? 'tab-active' : ''}"
 						on:click={() => switchDashboard(dashboard.id)}
 					>
 						<span class="mr-2">{dashboard.icon}</span>
@@ -74,7 +134,33 @@
 				{/each}
 			</div>
 
-			<!-- Refresh Button -->
+			<!-- Auto-refresh Controls -->
+			<div class="flex items-center gap-2">
+				<div class="form-control">
+					<label class="label cursor-pointer gap-2">
+						<span class="label-text text-sm">Auto-refresh</span>
+						<input
+							type="checkbox"
+							class="toggle toggle-primary toggle-sm"
+							bind:checked={$autoRefreshEnabled}
+							on:change={toggleAutoRefresh}
+						/>
+					</label>
+				</div>
+				{#if $autoRefreshEnabled}
+					<select
+						class="select select-bordered select-sm"
+						bind:value={$autoRefreshInterval}
+						on:change={changeRefreshInterval}
+					>
+						{#each intervalOptions as option}
+							<option value={option.value}>{option.label}</option>
+						{/each}
+					</select>
+				{/if}
+			</div>
+
+			<!-- Manual Refresh Button -->
 			<button class="btn btn-primary gap-2" on:click={refreshCurrentDashboard} disabled={loading}>
 				{#if loading}
 					<span class="loading loading-spinner"></span>
@@ -94,9 +180,9 @@
 	</div>
 
 	<!-- Dashboard Content -->
-	{#if selectedDashboard === 'observer'}
+	{#if $selectedDashboard === 'observer'}
 		<ObserverDashboard bind:this={observerDashboard} />
-	{:else if selectedDashboard === 'cosmic'}
+	{:else if $selectedDashboard === 'cosmic'}
 		<CosmicDashboard bind:this={cosmicDashboard} />
 	{/if}
 </div>
