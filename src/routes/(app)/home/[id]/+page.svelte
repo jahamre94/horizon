@@ -513,6 +513,39 @@
 	function hasGpuMetrics(metrics: Record<string, MetricSnapshot[]>): boolean {
 		return Object.keys(metrics).some((key) => key.startsWith('gpu_'));
 	}
+
+	// Extract GPU information from labels
+	function getGpuInfo(metrics: Record<string, MetricSnapshot[]>): {
+		name: string;
+		driverVersion: string;
+		index: string;
+		uuid: string;
+	} | null {
+		// Try to get GPU info from memory metrics first, then others
+		const metricOrder = [
+			'gpu_memory_used_mb',
+			'gpu_memory_total_mb',
+			'gpu_temperature_celsius',
+			'gpu_power_draw_watts'
+		];
+
+		for (const metricName of metricOrder) {
+			const metricData = metrics[metricName];
+			if (metricData && metricData.length > 0) {
+				const snapshot = metricData[0];
+				if (snapshot.labels) {
+					return {
+						name: snapshot.labels.gpu_name || 'Unknown GPU',
+						driverVersion: snapshot.labels.driver_version || 'Unknown',
+						index: snapshot.labels.gpu_index || '0',
+						uuid: snapshot.labels.gpu_uuid || 'Unknown'
+					};
+				}
+			}
+		}
+
+		return null;
+	}
 </script>
 
 <svelte:head>
@@ -835,9 +868,19 @@
 
 		<!-- GPU Metrics Dashboard -->
 		{#if availableMetrics.some((metric) => metric.startsWith('gpu_'))}
+			{@const gpuInfo = getGpuInfo(metrics)}
 			<div class="card bg-base-100 border-base-200 border shadow-sm">
 				<div class="card-body">
-					<h3 class="card-title text-lg">GPU Metrics</h3>
+					<div class="mb-4 flex items-center justify-between">
+						<h3 class="card-title text-lg">
+							{gpuInfo ? gpuInfo.name : 'GPU Metrics'}
+						</h3>
+						{#if gpuInfo}
+							<div class="text-base-content/70 text-sm">
+								Driver: {gpuInfo.driverVersion}
+							</div>
+						{/if}
+					</div>
 
 					{#if hasGpuMetrics(metrics)}
 						<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -899,6 +942,30 @@
 								</div>
 							{/if}
 						</div>
+
+						{#if gpuInfo}
+							<div class="bg-base-200 rounded-lg p-4">
+								<h4 class="mb-3 text-sm font-medium">GPU Information</h4>
+								<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+									<div class="flex items-center justify-between">
+										<span class="text-base-content/70 text-sm">Model</span>
+										<span class="text-sm font-medium">{gpuInfo.name}</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class="text-base-content/70 text-sm">Driver Version</span>
+										<span class="text-sm font-medium">{gpuInfo.driverVersion}</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class="text-base-content/70 text-sm">GPU Index</span>
+										<span class="text-sm font-medium">{gpuInfo.index}</span>
+									</div>
+									<div class="flex items-center justify-between">
+										<span class="text-base-content/70 text-sm">UUID</span>
+										<span class="font-mono text-xs font-medium">{gpuInfo.uuid}</span>
+									</div>
+								</div>
+							</div>
+						{/if}
 					{:else}
 						<div class="py-8 text-center">
 							<div class="mb-2 text-4xl">🎮</div>

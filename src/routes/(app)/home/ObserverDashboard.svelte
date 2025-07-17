@@ -669,7 +669,7 @@
 						<!-- Header with name, type, status, and tags in one row -->
 						<div class="mb-3 flex items-start justify-between">
 							<div class="min-w-0 flex-1 pr-2">
-								<div class="flex items-center gap-2 mb-1">
+								<div class="mb-1 flex items-center gap-2">
 									<h2 class="card-title truncate text-base">{o.name}</h2>
 									<span class="badge badge-outline badge-xs">{o.type}</span>
 								</div>
@@ -951,7 +951,7 @@
 											{/if}
 										</div>
 										{#if gpuMetrics.gpuInfo}
-											<div class="text-base-content/60 text-xs truncate">
+											<div class="text-base-content/60 truncate text-xs">
 												Driver: {gpuMetrics.gpuInfo.driverVersion}
 											</div>
 										{/if}
