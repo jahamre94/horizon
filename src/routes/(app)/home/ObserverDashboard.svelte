@@ -458,9 +458,28 @@
 		memoryTotalMb?: number;
 		powerDrawWatts?: number;
 		temperatureCelsius?: number;
+		gpuInfo?: {
+			name: string;
+			driverVersion: string;
+			index: string;
+			uuid: string;
+		};
 		hasAnyMetrics: boolean;
 	} {
-		const metrics = {
+		const metrics: {
+			count?: number;
+			memoryUsedMb?: number;
+			memoryTotalMb?: number;
+			powerDrawWatts?: number;
+			temperatureCelsius?: number;
+			gpuInfo?: {
+				name: string;
+				driverVersion: string;
+				index: string;
+				uuid: string;
+			};
+			hasAnyMetrics: boolean;
+		} = {
 			count: hasMetric(observer, 'gpu_count')
 				? getFirstMetricValue(observer, 'gpu_count').value
 				: undefined,
@@ -476,8 +495,28 @@
 			temperatureCelsius: hasMetric(observer, 'gpu_temperature_celsius')
 				? getFirstMetricValue(observer, 'gpu_temperature_celsius').value
 				: undefined,
+			gpuInfo: undefined,
 			hasAnyMetrics: false
 		};
+
+		// Extract GPU info from labels (try memory metric first, then others)
+		let gpuSnapshot = null;
+		if (hasMetric(observer, 'gpu_memory_used_mb')) {
+			gpuSnapshot = getFirstMetricValue(observer, 'gpu_memory_used_mb');
+		} else if (hasMetric(observer, 'gpu_memory_total_mb')) {
+			gpuSnapshot = getFirstMetricValue(observer, 'gpu_memory_total_mb');
+		} else if (hasMetric(observer, 'gpu_temperature_celsius')) {
+			gpuSnapshot = getFirstMetricValue(observer, 'gpu_temperature_celsius');
+		}
+
+		if (gpuSnapshot && gpuSnapshot.labels) {
+			metrics.gpuInfo = {
+				name: gpuSnapshot.labels.gpu_name || 'Unknown GPU',
+				driverVersion: gpuSnapshot.labels.driver_version || 'Unknown',
+				index: gpuSnapshot.labels.gpu_index || '0',
+				uuid: gpuSnapshot.labels.gpu_uuid || 'Unknown'
+			};
+		}
 
 		// Check if any GPU metrics exist
 		metrics.hasAnyMetrics =
@@ -623,14 +662,17 @@
 			</div>
 		</div>
 	{:else}
-		<div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+		<div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
 			{#each observers as o}
 				<div class="card bg-base-100 h-full min-w-0 shadow-xl">
 					<div class="card-body flex h-full min-w-0 flex-col p-4">
-						<!-- Header with name, type, and status -->
+						<!-- Header with name, type, status, and tags in one row -->
 						<div class="mb-3 flex items-start justify-between">
 							<div class="min-w-0 flex-1 pr-2">
-								<h2 class="card-title mb-1 truncate text-base">{o.name}</h2>
+								<div class="flex items-center gap-2 mb-1">
+									<h2 class="card-title truncate text-base">{o.name}</h2>
+									<span class="badge badge-outline badge-xs">{o.type}</span>
+								</div>
 								<div class="flex items-center gap-2 text-xs">
 									<div class="tooltip tooltip-top" data-tip={getOnlineStatus(o.last_seen).tooltip}>
 										<div class="flex items-center gap-1">
@@ -653,192 +695,126 @@
 											Never
 										{/if}
 									</span>
+									<span class="text-base-content/60">•</span>
+									<span class="text-base-content/60 truncate font-mono text-xs">
+										{formatUptime(o.last_uptime_seconds)}
+									</span>
 								</div>
-							</div>
-							<div class="flex flex-shrink-0 flex-col items-end gap-1">
-								<span class="badge badge-outline badge-xs">{o.type}</span>
-								<span class="text-base-content/60 truncate font-mono text-xs">
-									{formatUptime(o.last_uptime_seconds)}
-								</span>
+								<!-- Tags inline -->
+								{#if Object.keys(o.tags).length > 0}
+									<div class="mt-1 flex flex-wrap gap-1">
+										{#each Object.entries(o.tags) as [k, v]}
+											<span class="badge badge-xs badge-neutral">{k}={v}</span>
+										{/each}
+									</div>
+								{/if}
 							</div>
 						</div>
 
-						<!-- Tags (if any) -->
-						{#if Object.keys(o.tags).length > 0}
-							<div class="mb-3 flex flex-wrap gap-1">
-								{#each Object.entries(o.tags) as [k, v]}
-									<span class="badge badge-xs badge-neutral">{k}={v}</span>
-								{/each}
-							</div>
-						{/if}
-
-						<!-- Docker Containers -->
-						{#if getDockerMetrics(o).hasAnyMetrics}
-							{@const dockerMetrics = getDockerMetrics(o)}
-							<div class="mb-3">
+						<!-- Container sections in a horizontal layout -->
+						<div class="mb-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
+							<!-- Docker Containers -->
+							{#if getDockerMetrics(o).hasAnyMetrics}
+								{@const dockerMetrics = getDockerMetrics(o)}
 								<div class="bg-base-200 rounded-lg p-2">
 									<div class="mb-2 flex items-center gap-1">
 										<span class="text-sm">🐳</span>
-										<span class="text-xs font-medium">Docker Containers</span>
+										<span class="text-xs font-medium">Docker</span>
 									</div>
-									<div class="space-y-1 text-xs">
-										<div class="flex flex-wrap gap-2">
-											{#if dockerMetrics.running !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-success">🟢</span>
-													<span class="text-success">Running: {dockerMetrics.running}</span>
-												</span>
-											{/if}
-											{#if dockerMetrics.exited !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-base-content/60">⚫</span>
-													<span class="text-base-content/60">Exited: {dockerMetrics.exited}</span>
-												</span>
-											{/if}
-											{#if dockerMetrics.created !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-info">🧱</span>
-													<span class="text-info">Created: {dockerMetrics.created}</span>
-												</span>
-											{/if}
-											{#if dockerMetrics.total !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-base-content/80">📊</span>
-													<span class="text-base-content/80">Total: {dockerMetrics.total}</span>
-												</span>
-											{/if}
-										</div>
+									<div class="flex flex-wrap gap-2 text-xs">
+										{#if dockerMetrics.running !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-success">●</span>
+												<span class="text-success">{dockerMetrics.running} Running</span>
+											</span>
+										{/if}
+										{#if dockerMetrics.exited !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-base-content/60">●</span>
+												<span class="text-base-content/60">{dockerMetrics.exited} Exited</span>
+											</span>
+										{/if}
+										{#if dockerMetrics.total !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-base-content/80">📊</span>
+												<span class="text-base-content/80">{dockerMetrics.total} Total</span>
+											</span>
+										{/if}
 									</div>
 								</div>
-							</div>
-						{/if}
+							{/if}
 
-						<!-- QEMU Virtual Machines -->
-						{#if getQemuMetrics(o).hasAnyMetrics}
-							{@const qemuMetrics = getQemuMetrics(o)}
-							<div class="mb-3">
+							<!-- QEMU Virtual Machines -->
+							{#if getQemuMetrics(o).hasAnyMetrics}
+								{@const qemuMetrics = getQemuMetrics(o)}
 								<div class="bg-base-200 rounded-lg p-2">
 									<div class="mb-2 flex items-center gap-1">
 										<span class="text-sm">🖥️</span>
-										<span class="text-xs font-medium">Virtual Machines</span>
+										<span class="text-xs font-medium">VMs</span>
 									</div>
-									<div class="space-y-1 text-xs">
-										<div class="flex flex-wrap gap-2">
-											{#if qemuMetrics.running !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-success">🟢</span>
-													<span class="text-success">Running: {qemuMetrics.running}</span>
-												</span>
-											{/if}
-											{#if qemuMetrics.stopped !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-base-content/60">⚫</span>
-													<span class="text-base-content/60">Stopped: {qemuMetrics.stopped}</span>
-												</span>
-											{/if}
-											{#if qemuMetrics.paused !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-warning">⏸️</span>
-													<span class="text-warning">Paused: {qemuMetrics.paused}</span>
-												</span>
-											{/if}
-											{#if qemuMetrics.suspended !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-info">💤</span>
-													<span class="text-info">Suspended: {qemuMetrics.suspended}</span>
-												</span>
-											{/if}
-											{#if qemuMetrics.crashed !== undefined && qemuMetrics.crashed > 0}
-												<span class="flex items-center gap-1">
-													<span class="text-error">💥</span>
-													<span class="text-error">Crashed: {qemuMetrics.crashed}</span>
-												</span>
-											{/if}
-											{#if qemuMetrics.total !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-base-content/80">📊</span>
-													<span class="text-base-content/80">Total: {qemuMetrics.total}</span>
-												</span>
-											{/if}
-										</div>
-										{#if qemuMetrics.totalVcpus !== undefined || qemuMetrics.totalMemoryMb !== undefined}
-											<div class="mt-2 flex flex-wrap gap-2">
-												{#if qemuMetrics.totalVcpus !== undefined}
-													<span class="flex items-center gap-1">
-														<span class="text-accent">🔧</span>
-														<span class="text-accent">vCPUs: {qemuMetrics.totalVcpus}</span>
-													</span>
-												{/if}
-												{#if qemuMetrics.totalMemoryMb !== undefined}
-													<span class="flex items-center gap-1">
-														<span class="text-secondary">💾</span>
-														<span class="text-secondary"
-															>Memory: {formatQemuMemory(qemuMetrics.totalMemoryMb)}</span
-														>
-													</span>
-												{/if}
-											</div>
+									<div class="flex flex-wrap gap-2 text-xs">
+										{#if qemuMetrics.running !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-success">●</span>
+												<span class="text-success">{qemuMetrics.running} Running</span>
+											</span>
+										{/if}
+										{#if qemuMetrics.stopped !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-base-content/60">●</span>
+												<span class="text-base-content/60">{qemuMetrics.stopped} Stopped</span>
+											</span>
+										{/if}
+										{#if qemuMetrics.paused !== undefined && qemuMetrics.paused > 0}
+											<span class="flex items-center gap-1">
+												<span class="text-warning">●</span>
+												<span class="text-warning">{qemuMetrics.paused} Paused</span>
+											</span>
+										{/if}
+										{#if qemuMetrics.total !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-base-content/80">📊</span>
+												<span class="text-base-content/80">{qemuMetrics.total} Total</span>
+											</span>
 										{/if}
 									</div>
 								</div>
-							</div>
-						{/if}
+							{/if}
 
-						<!-- User Accounts -->
-						{#if getUserAccountMetrics(o).hasAnyMetrics}
-							{@const userMetrics = getUserAccountMetrics(o)}
-							<div class="mb-3">
+							<!-- User Accounts -->
+							{#if getUserAccountMetrics(o).hasAnyMetrics}
+								{@const userMetrics = getUserAccountMetrics(o)}
 								<div class="bg-base-200 rounded-lg p-2">
 									<div class="mb-2 flex items-center gap-1">
 										<span class="text-sm">👤</span>
-										<span class="text-xs font-medium">User Accounts</span>
+										<span class="text-xs font-medium">Users</span>
 									</div>
-									<div class="space-y-1 text-xs">
-										<div class="flex flex-wrap gap-2">
-											{#if userMetrics.total !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-base-content/80">👥</span>
-													<span class="text-base-content/80">Total: {userMetrics.total}</span>
-												</span>
-											{/if}
-											{#if userMetrics.loginable !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-warning">🔓</span>
-													<span class="text-warning">Interactive: {userMetrics.loginable}</span>
-												</span>
-											{/if}
-											{#if userMetrics.nonLoginable !== undefined}
-												<span class="flex items-center gap-1">
-													<span class="text-success">🔒</span>
-													<span class="text-success">System: {userMetrics.nonLoginable}</span>
-												</span>
-											{/if}
-										</div>
-										{#if userMetrics.total !== undefined && userMetrics.loginable !== undefined}
-											{@const securityStatus = getUserAccountSecurityStatus(
-												userMetrics.loginable,
-												userMetrics.total
-											)}
-											<div class="mt-2 flex items-center gap-2">
-												<span class="flex items-center gap-1">
-													<span class="text-info">🛡️</span>
-													<span class="text-info text-xs">Security: </span>
-													<span class="text-xs font-medium {securityStatus.color}"
-														>{securityStatus.status}</span
-													>
-												</span>
-												<span class="text-base-content/60 text-xs">
-													({securityStatus.percentage.toFixed(1)}% interactive)
-												</span>
-											</div>
+									<div class="flex flex-wrap gap-2 text-xs">
+										{#if userMetrics.total !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-base-content/80">👥</span>
+												<span class="text-base-content/80">{userMetrics.total} Total</span>
+											</span>
+										{/if}
+										{#if userMetrics.loginable !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-warning">🔓</span>
+												<span class="text-warning">{userMetrics.loginable} Interactive</span>
+											</span>
+										{/if}
+										{#if userMetrics.nonLoginable !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-success">🔒</span>
+												<span class="text-success">{userMetrics.nonLoginable} System</span>
+											</span>
 										{/if}
 									</div>
 								</div>
-							</div>
-						{/if}
+							{/if}
+						</div>
 
-						<!-- Metrics Grid -->
-						<div class="mb-3 grid flex-1 grid-cols-2 gap-2">
+						<!-- Main Metrics Grid -->
+						<div class="mb-3 grid grid-cols-2 gap-2 lg:grid-cols-4">
 							{#if hasMetric(o, 'cpu_usage')}
 								<div class="bg-base-200 rounded-lg p-2">
 									<div class="mb-1 flex items-center gap-1">
@@ -877,9 +853,6 @@
 											100
 										).toFixed(1)}%
 									</div>
-									<div class="text-base-content/60 text-xs">
-										{formatMemory(getFirstMetricValue(o, 'mem_used').value)}
-									</div>
 								</div>
 							{:else}
 								<div class="bg-base-200 rounded-lg p-2 opacity-50">
@@ -888,7 +861,6 @@
 										<span class="text-xs font-medium">Memory</span>
 									</div>
 									<div class="text-base-content/50 text-sm font-bold">N/A</div>
-									<div class="text-base-content/50 text-xs">-</div>
 								</div>
 							{/if}
 
@@ -921,16 +893,13 @@
 									</div>
 									<div class="text-xs">
 										{#if networkMetrics.interfaces.length > 1}
-											<!-- Multiple interfaces - show totals -->
 											<div class="text-success">↑ {formatBytes(networkMetrics.totalSent)}</div>
 											<div class="text-info">↓ {formatBytes(networkMetrics.totalReceived)}</div>
 										{:else if networkMetrics.interfaces.length === 1}
-											<!-- Single interface - show interface data -->
 											{@const iface = networkMetrics.interfaces[0]}
 											<div class="text-success">↑ {formatBytes(iface.sent || 0)}</div>
 											<div class="text-info">↓ {formatBytes(iface.received || 0)}</div>
 										{:else}
-											<!-- Fallback to old method -->
 											<div class="text-success">
 												↑ {formatBytes(getFirstMetricValue(o, 'net_bytes_sent').value)}
 											</div>
@@ -958,91 +927,90 @@
 							{/if}
 						</div>
 
-						<!-- GPU Metrics -->
-						{#if getGpuMetrics(o).hasAnyMetrics}
-							{@const gpuMetrics = getGpuMetrics(o)}
-							<div class="mb-3">
+						<!-- GPU and Disk in horizontal layout -->
+						<div class="mb-3 grid grid-cols-1 gap-2 lg:grid-cols-2">
+							<!-- GPU Metrics -->
+							{#if getGpuMetrics(o).hasAnyMetrics}
+								{@const gpuMetrics = getGpuMetrics(o)}
 								<div class="bg-base-200 rounded-lg p-2">
 									<div class="mb-2 flex items-center gap-1">
 										<span class="text-sm">🎮</span>
-										<span class="text-xs font-medium">GPU</span>
+										<span class="text-xs font-medium">
+											{gpuMetrics.gpuInfo ? gpuMetrics.gpuInfo.name : 'GPU'}
+										</span>
 									</div>
-									<div class="grid grid-cols-2 gap-2 text-xs">
-										{#if gpuMetrics.count !== undefined}
-											<div class="flex items-center gap-1">
-												<span class="text-primary">📊</span>
-												<span class="text-primary">Count: {gpuMetrics.count}</span>
-											</div>
-										{/if}
-										{#if gpuMetrics.temperatureCelsius !== undefined}
-											<div class="flex items-center gap-1">
-												<span class="text-accent">🌡️</span>
+									<div class="space-y-1 text-xs">
+										<div class="flex items-center justify-between">
+											{#if gpuMetrics.count !== undefined}
+												<span>Count: {gpuMetrics.count}</span>
+											{/if}
+											{#if gpuMetrics.temperatureCelsius !== undefined}
 												<span class={getGpuTempColor(gpuMetrics.temperatureCelsius)}>
 													{gpuMetrics.temperatureCelsius.toFixed(1)}°C
 												</span>
+											{/if}
+										</div>
+										{#if gpuMetrics.gpuInfo}
+											<div class="text-base-content/60 text-xs truncate">
+												Driver: {gpuMetrics.gpuInfo.driverVersion}
 											</div>
 										{/if}
 										{#if gpuMetrics.memoryUsedMb !== undefined && gpuMetrics.memoryTotalMb !== undefined}
-											<div class="col-span-2">
-												<div class="flex items-center justify-between">
-													<span class="text-xs">Memory</span>
-													<span class="text-xs font-bold">
-														{getGpuMemoryUsagePercent(
-															gpuMetrics.memoryUsedMb,
-															gpuMetrics.memoryTotalMb
-														).toFixed(1)}%
-													</span>
-												</div>
-												<div class="bg-base-300 h-1.5 w-full rounded-full">
-													<div
-														class="h-1.5 rounded-full transition-all duration-300 {getGpuMemoryUsagePercent(
-															gpuMetrics.memoryUsedMb,
-															gpuMetrics.memoryTotalMb
-														) < 70
-															? 'bg-success'
-															: getGpuMemoryUsagePercent(
-																		gpuMetrics.memoryUsedMb,
-																		gpuMetrics.memoryTotalMb
-																  ) < 85
-																? 'bg-warning'
-																: 'bg-error'}"
-														style="width: {getGpuMemoryUsagePercent(
-															gpuMetrics.memoryUsedMb,
-															gpuMetrics.memoryTotalMb
-														)}%"
-													></div>
-												</div>
-												<div class="text-base-content/60 text-xs">
-													{formatGpuMemory(gpuMetrics.memoryUsedMb)} / {formatGpuMemory(
+											<div class="flex items-center justify-between">
+												<span>Memory</span>
+												<span class="font-bold">
+													{getGpuMemoryUsagePercent(
+														gpuMetrics.memoryUsedMb,
 														gpuMetrics.memoryTotalMb
-													)}
-												</div>
+													).toFixed(1)}%
+												</span>
+											</div>
+											<div class="bg-base-300 h-1.5 w-full rounded-full">
+												<div
+													class="h-1.5 rounded-full transition-all duration-300 {getGpuMemoryUsagePercent(
+														gpuMetrics.memoryUsedMb,
+														gpuMetrics.memoryTotalMb
+													) < 70
+														? 'bg-success'
+														: getGpuMemoryUsagePercent(
+																	gpuMetrics.memoryUsedMb,
+																	gpuMetrics.memoryTotalMb
+															  ) < 85
+															? 'bg-warning'
+															: 'bg-error'}"
+													style="width: {getGpuMemoryUsagePercent(
+														gpuMetrics.memoryUsedMb,
+														gpuMetrics.memoryTotalMb
+													)}%"
+												></div>
 											</div>
 										{/if}
 									</div>
 								</div>
-							</div>
-						{/if}
-
-						<!-- Disk Usage (simplified) -->
-						<div class="mb-3">
-							{#if getEnhancedDiskMetrics(o).mounts.length > 0}
-								{@const enhancedDiskMetrics = getEnhancedDiskMetrics(o)}
-								<div class="bg-base-200 rounded-lg p-2">
+							{:else}
+								<div class="bg-base-200 rounded-lg p-2 opacity-50">
 									<div class="mb-2 flex items-center gap-1">
-										<span class="text-sm">💿</span>
-										<span class="text-xs font-medium">Disk Usage</span>
+										<span class="text-sm">🎮</span>
+										<span class="text-xs font-medium">GPU</span>
 									</div>
+									<div class="text-base-content/50 text-xs">No GPU data</div>
+								</div>
+							{/if}
 
-									<!-- Show only total if multiple mounts, otherwise show main mount -->
-									{#if enhancedDiskMetrics.mounts.length > 1 && enhancedDiskMetrics.totals.totalBytes > 0}
-										<div class="space-y-1">
+							<!-- Disk Usage -->
+							<div class="bg-base-200 rounded-lg p-2">
+								<div class="mb-2 flex items-center gap-1">
+									<span class="text-sm">💿</span>
+									<span class="text-xs font-medium">Disk</span>
+								</div>
+								{#if getEnhancedDiskMetrics(o).mounts.length > 0}
+									{@const enhancedDiskMetrics = getEnhancedDiskMetrics(o)}
+									<div class="space-y-1 text-xs">
+										{#if enhancedDiskMetrics.mounts.length > 1 && enhancedDiskMetrics.totals.totalBytes > 0}
 											<div class="flex items-center justify-between">
-												<span class="text-xs"
-													>Total ({enhancedDiskMetrics.mounts.length} mounts)</span
-												>
+												<span>Total ({enhancedDiskMetrics.mounts.length} mounts)</span>
 												<span
-													class="text-xs font-bold {getDiskUsageColor(
+													class="font-bold {getDiskUsageColor(
 														enhancedDiskMetrics.totals.usedPercent
 													).badgeClass.replace('badge-', 'text-')}"
 												>
@@ -1056,22 +1024,16 @@
 													style="width: {Math.min(enhancedDiskMetrics.totals.usedPercent, 100)}%"
 												></div>
 											</div>
-											<div class="text-base-content/60 text-xs">
-												{formatBytes(enhancedDiskMetrics.totals.usedBytes)} / {formatBytes(
-													enhancedDiskMetrics.totals.totalBytes
-												)}
-											</div>
-										</div>
-									{:else if enhancedDiskMetrics.mounts.length === 1}
-										{@const diskInfo = enhancedDiskMetrics.mounts[0]}
-										{@const percentage = diskInfo.calculatedPercent || diskInfo.usedPercent || 0}
-										<div class="space-y-1">
+										{:else if enhancedDiskMetrics.mounts.length === 1}
+											{@const diskInfo = enhancedDiskMetrics.mounts[0]}
+											{@const percentage = diskInfo.calculatedPercent || diskInfo.usedPercent || 0}
 											<div class="flex items-center justify-between">
-												<span class="font-mono text-xs">{diskInfo.mount}</span>
+												<span class="font-mono">{diskInfo.mount}</span>
 												<span
-													class="text-xs font-bold {getDiskUsageColor(
-														percentage
-													).badgeClass.replace('badge-', 'text-')}"
+													class="font-bold {getDiskUsageColor(percentage).badgeClass.replace(
+														'badge-',
+														'text-'
+													)}"
 												>
 													{percentage.toFixed(1)}%
 												</span>
@@ -1083,32 +1045,12 @@
 													style="width: {Math.min(percentage, 100)}%"
 												></div>
 											</div>
-											{#if diskInfo.totalBytes && diskInfo.usedBytes}
-												<div class="text-base-content/60 text-xs">
-													{formatBytes(diskInfo.usedBytes)} / {formatBytes(diskInfo.totalBytes)}
-												</div>
-											{/if}
-										</div>
-									{/if}
-								</div>
-							{:else}
-								<div class="bg-base-200 rounded-lg p-2 opacity-50">
-									<div class="mb-2 flex items-center gap-1">
-										<span class="text-sm">💿</span>
-										<span class="text-xs font-medium">Disk Usage</span>
+										{/if}
 									</div>
-									<div class="space-y-1">
-										<div class="flex items-center justify-between">
-											<span class="text-xs">N/A</span>
-											<span class="text-base-content/50 text-xs font-bold">N/A</span>
-										</div>
-										<div class="bg-base-300 h-1.5 w-full rounded-full">
-											<div class="bg-base-content/20 h-1.5 rounded-full" style="width: 0%"></div>
-										</div>
-										<div class="text-base-content/50 text-xs">No disk data</div>
-									</div>
-								</div>
-							{/if}
+								{:else}
+									<div class="text-base-content/50 text-xs">No disk data</div>
+								{/if}
+							</div>
 						</div>
 
 						<!-- View Details Button -->
