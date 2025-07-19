@@ -32,6 +32,8 @@
 	];
 
 	let tags: { key: string; value: string }[] = [{ key: '', value: '' }];
+	let showToast = false;
+	let toastMessage = '';
 
 	// Get server URL from browser location
 	if (browser) {
@@ -114,6 +116,11 @@
 	function copyToClipboard(text: string) {
 		if (browser) {
 			navigator.clipboard.writeText(text);
+			showToast = true;
+			toastMessage = 'Command copied to clipboard!';
+			setTimeout(() => {
+				showToast = false;
+			}, 2000);
 		}
 	}
 </script>
@@ -188,6 +195,34 @@ chmod +x {getExecutableFilename()} && ./{getExecutableFilename()} --config=obser
 							copyToClipboard(
 								`chmod +x ${getExecutableFilename()} && ./${getExecutableFilename()} --config=observer.yaml`
 							)}
+						title="Copy to clipboard"
+					>
+						📋
+					</button>
+				</div>
+
+				<!-- Install command -->
+				<div class="relative">
+					<pre class="bg-base-200 overflow-x-auto rounded-md p-3 pr-12 text-sm"><code>
+sudo ./{getExecutableFilename()} install</code
+						></pre>
+					<button
+						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
+						on:click={() => copyToClipboard(`sudo ./${getExecutableFilename()} install`)}
+						title="Copy to clipboard"
+					>
+						📋
+					</button>
+				</div>
+
+				<!-- Monitor logs command -->
+				<div class="relative">
+					<pre class="bg-base-200 overflow-x-auto rounded-md p-3 pr-12 text-sm"><code>
+journalctl -u cosmoswatcher-observer -f</code
+						></pre>
+					<button
+						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
+						on:click={() => copyToClipboard('journalctl -u cosmoswatcher-observer -f')}
 						title="Copy to clipboard"
 					>
 						📋
@@ -335,3 +370,12 @@ chmod +x {getExecutableFilename()} && ./{getExecutableFilename()} --config=obser
 		{/if}
 	</Modal>
 </div>
+
+<!-- Toast notification -->
+{#if showToast}
+	<div class="toast toast-top toast-end">
+		<div class="alert alert-success">
+			<span>{toastMessage}</span>
+		</div>
+	</div>
+{/if}

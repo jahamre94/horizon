@@ -127,7 +127,11 @@
 				<div class="flex items-center gap-3">
 					<img src="/icon.png" alt="CosmosWatcher Logo" class="h-12 w-12" />
 					<div>
-						<h1 class="text-md font-bold text-nowrap text-white">Cosmos Watcher</h1>
+						<span
+							class="from-primary to-accent group-hover:from-accent group-hover:to-primary bg-gradient-to-r bg-clip-text text-transparent transition-all duration-300"
+						>
+							Cosmos Watcher
+						</span>
 						<p class="mt-1 text-xs font-medium text-slate-300">Horizon Portal</p>
 					</div>
 				</div>
