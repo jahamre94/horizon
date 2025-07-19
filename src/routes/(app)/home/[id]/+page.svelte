@@ -32,10 +32,24 @@
 	let userDetailsExpanded = false;
 	let loadingUserDetails = false;
 	let userDetails: any[] = [];
+	let metricsLoading = false; // Separate loading state for metrics processing
+	let showingPartialData = false; // Flag to indicate partial data is being shown
 
 	// Initialize metrics if observer exists
 	if (observer) {
 		metrics = (observer as Observer).metrics;
+		// Check if we have a large dataset
+		const totalDataPoints = Object.values(metrics).reduce(
+			(sum, arr) => sum + (arr?.length || 0),
+			0
+		);
+		if (totalDataPoints > 1000) {
+			showingPartialData = true;
+			// Process data progressively in the next tick to not block rendering
+			setTimeout(() => {
+				showingPartialData = false;
+			}, 100);
+		}
 	}
 
 	// Initial load when observer is null
@@ -78,20 +92,44 @@
 
 	async function fetchMetrics(hours: number) {
 		loading = true;
+		metricsLoading = true;
 		error = null;
+		showingPartialData = false;
 		try {
 			const observerId = observer?.id || data.observerId;
 			const result = await apiGet<Observer>(`/api/observer/${observerId}/history?range=${hours}h`);
 			if (result.success) {
 				observer = result.data;
-				metrics = observer.metrics;
+				// Check data size and show progressive loading if needed
+				const totalDataPoints = Object.values(result.data.metrics).reduce(
+					(sum, arr) => sum + (arr?.length || 0),
+					0
+				);
+				if (totalDataPoints > 1000) {
+					showingPartialData = true;
+					// Show basic observer info first
+					loading = false;
+					// Process metrics in next tick to prevent blocking
+					setTimeout(() => {
+						metrics = observer!.metrics;
+						showingPartialData = false;
+						metricsLoading = false;
+					}, 50);
+				} else {
+					metrics = observer.metrics;
+					metricsLoading = false;
+				}
 			} else {
 				error = result.error || 'Failed to fetch metrics';
+				metricsLoading = false;
 			}
 		} catch (err) {
 			error = 'Network error occurred';
+			metricsLoading = false;
 		} finally {
-			loading = false;
+			if (!showingPartialData) {
+				loading = false;
+			}
 		}
 	}
 
@@ -553,9 +591,41 @@
 </svelte:head>
 
 <div class="space-y-6">
+	<!-- Large Dataset Loading Info Banner -->
+	{#if showingPartialData || metricsLoading}
+		<div class="alert alert-info">
+			<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					stroke-width="2"
+					d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+				/>
+			</svg>
+			<div>
+				<div class="font-semibold">Processing Large Dataset</div>
+				<div class="text-sm">
+					{#if showingPartialData}
+						This observer has extensive metrics data. Basic information is shown while detailed
+						charts are being prepared...
+					{:else if metricsLoading}
+						Loading and processing metrics data. This may take a moment for observers with extensive
+						historical data.
+					{/if}
+				</div>
+			</div>
+			{#if metricsLoading}
+				<span class="loading loading-spinner loading-sm"></span>
+			{/if}
+		</div>
+	{/if}
+
 	{#if loading && !observer}
 		<div class="flex items-center justify-center py-8">
-			<span class="loading loading-spinner loading-lg"></span>
+			<div class="text-center">
+				<span class="loading loading-spinner loading-lg"></span>
+				<div class="text-base-content/70 mt-4 text-sm">Loading observer data...</div>
+			</div>
 		</div>
 	{:else if error}
 		<div class="alert alert-error">
@@ -584,22 +654,31 @@
 					class="select select-bordered select-sm"
 					value={selectedHours}
 					on:change={handleTimeRangeChange}
+					disabled={loading || metricsLoading}
 				>
 					{#each timeRanges as range}
 						<option value={range.value}>{range.label}</option>
 					{/each}
 				</select>
 
-				<button class="btn btn-ghost btn-sm" on:click={() => fetchMetrics(selectedHours)}>
-					<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-						/>
-					</svg>
-					Refresh
+				<button
+					class="btn btn-ghost btn-sm"
+					on:click={() => fetchMetrics(selectedHours)}
+					disabled={loading || metricsLoading}
+				>
+					{#if loading || metricsLoading}
+						<span class="loading loading-spinner loading-sm"></span>
+					{:else}
+						<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="2"
+								d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+							/>
+						</svg>
+					{/if}
+					{loading || metricsLoading ? 'Loading...' : 'Refresh'}
 				</button>
 			</div>
 		</div>
@@ -643,7 +722,20 @@
 				</div>
 
 				<!-- Network Usage Stats -->
-				{#if availableMetrics.includes('net_bytes_sent') || availableMetrics.includes('net_bytes_recv')}
+				{#if metricsLoading}
+					<div class="mt-6">
+						<div class="skeleton mb-4 h-4 w-48"></div>
+						{#each Array(3) as _, i}
+							<div class="mb-4">
+								<div class="skeleton mb-2 h-3 w-24"></div>
+								<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+									<div class="skeleton h-16 w-full rounded-lg"></div>
+									<div class="skeleton h-16 w-full rounded-lg"></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+				{:else if availableMetrics.includes('net_bytes_sent') || availableMetrics.includes('net_bytes_recv')}
 					<div class="mt-6">
 						<div class="mb-4 text-sm font-medium">Network Usage (All Interfaces)</div>
 
@@ -727,12 +819,31 @@
 		</div>
 
 		<!-- Virtual Machines List -->
-		<VirtualMachinesList {metrics} />
+		{#if metricsLoading}
+			<div class="card bg-base-100 border-base-200 border shadow-sm">
+				<div class="card-body">
+					<div class="mb-4 flex items-center justify-between">
+						<div class="skeleton h-6 w-48"></div>
+						<div class="skeleton h-6 w-24"></div>
+					</div>
+					<div class="space-y-4">
+						{#each Array(3) as _}
+							<div class="skeleton h-16 w-full"></div>
+						{/each}
+					</div>
+				</div>
+			</div>
+		{:else}
+			<VirtualMachinesList {metrics} />
+		{/if}
 
-		<!-- Loading State -->
-		{#if loading}
+		<!-- Metrics Loading State -->
+		{#if metricsLoading && !showingPartialData}
 			<div class="flex items-center justify-center py-8">
-				<span class="loading loading-spinner loading-lg"></span>
+				<div class="text-center">
+					<span class="loading loading-spinner loading-lg"></span>
+					<div class="text-base-content/70 mt-4 text-sm">Processing metrics data...</div>
+				</div>
 			</div>
 		{/if}
 
@@ -752,7 +863,35 @@
 		{/if}
 
 		<!-- Disk Usage Dashboard Tiles -->
-		{#if availableMetrics.includes('disk_used_percent')}
+		{#if metricsLoading}
+			<!-- Skeleton for Disk Usage -->
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				<div class="card bg-base-100 border-base-200 border shadow-sm">
+					<div class="card-body">
+						<div class="skeleton mb-4 h-6 w-48"></div>
+						<div class="space-y-4">
+							{#each Array(4) as _}
+								<div class="flex items-center gap-3">
+									<div class="flex-1">
+										<div class="mb-2 flex items-center justify-between">
+											<div class="skeleton h-4 w-24"></div>
+											<div class="skeleton h-4 w-12"></div>
+										</div>
+										<div class="skeleton h-3 w-full rounded-full"></div>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
+				<div class="card bg-base-100 border-base-200 border shadow-sm">
+					<div class="card-body">
+						<div class="skeleton mb-4 h-6 w-32"></div>
+						<div class="skeleton h-80 w-full"></div>
+					</div>
+				</div>
+			</div>
+		{:else if availableMetrics.includes('disk_used_percent')}
 			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 				<!-- Tile 1: Disk Usage Bar Chart (Current Snapshot) -->
 				<div class="card bg-base-100 border-base-200 border shadow-sm">
@@ -867,7 +1006,39 @@
 		{/if}
 
 		<!-- GPU Metrics Dashboard -->
-		{#if availableMetrics.some((metric) => metric.startsWith('gpu_'))}
+		{#if metricsLoading}
+			<!-- Skeleton for GPU Metrics -->
+			<div class="card bg-base-100 border-base-200 border shadow-sm">
+				<div class="card-body">
+					<div class="mb-4 flex items-center justify-between">
+						<div class="skeleton h-6 w-32"></div>
+						<div class="skeleton h-4 w-24"></div>
+					</div>
+					<div class="mb-4 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+						{#each Array(4) as _}
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-2 text-center">
+									<div class="skeleton mx-auto mb-2 h-8 w-8"></div>
+									<div class="skeleton mx-auto h-6 w-16"></div>
+									<div class="skeleton mx-auto mt-1 h-4 w-20"></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+					<div class="bg-base-200 rounded-lg p-4">
+						<div class="skeleton mb-3 h-4 w-32"></div>
+						<div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+							{#each Array(4) as _}
+								<div class="flex items-center justify-between">
+									<div class="skeleton h-4 w-20"></div>
+									<div class="skeleton h-4 w-24"></div>
+								</div>
+							{/each}
+						</div>
+					</div>
+				</div>
+			</div>
+		{:else if availableMetrics.some((metric) => metric.startsWith('gpu_'))}
 			{@const gpuInfo = getGpuInfo(metrics)}
 			<div class="card bg-base-100 border-base-200 border shadow-sm">
 				<div class="card-body">
@@ -977,7 +1148,42 @@
 		{/if}
 
 		<!-- User Accounts Dashboard -->
-		{#if userAccountMetrics.total > 0}
+		{#if metricsLoading}
+			<!-- Skeleton for User Accounts -->
+			<div class="card bg-base-100 border-base-200 border shadow-sm">
+				<div class="card-body">
+					<div class="skeleton mb-4 h-6 w-32"></div>
+					<div class="mb-4">
+						<div class="mb-2 flex items-center justify-between">
+							<div class="skeleton h-4 w-24"></div>
+							<div class="skeleton h-6 w-16"></div>
+						</div>
+						<div class="skeleton h-3 w-full rounded-full"></div>
+						<div class="mt-2 flex items-center justify-between">
+							<div class="skeleton h-3 w-20"></div>
+							<div class="skeleton h-3 w-12"></div>
+						</div>
+					</div>
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+						{#each Array(3) as _}
+							<div class="bg-base-200 rounded-lg p-4">
+								<div class="mb-2 flex items-center justify-between">
+									<div class="skeleton h-4 w-20"></div>
+									<div class="skeleton h-6 w-8"></div>
+								</div>
+								<div class="flex items-center gap-2">
+									<div class="skeleton h-6 w-6"></div>
+									<div class="skeleton h-5 w-16"></div>
+								</div>
+							</div>
+						{/each}
+					</div>
+					<div class="mt-4">
+						<div class="skeleton h-8 w-full"></div>
+					</div>
+				</div>
+			</div>
+		{:else if userAccountMetrics.total > 0}
 			<div class="card bg-base-100 border-base-200 border shadow-sm">
 				<div class="card-body">
 					<h3 class="card-title text-lg">User Accounts</h3>
@@ -1148,7 +1354,22 @@
 		{/if}
 
 		<!-- Metrics Charts -->
-		{#if !loading && !error}
+		{#if metricsLoading}
+			<!-- Skeleton Loading for Charts -->
+			<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+				{#each Array(6) as _}
+					<div class="card bg-base-100 border-base-200 border shadow-sm">
+						<div class="card-body">
+							<div class="mb-4 flex items-center justify-between">
+								<div class="skeleton h-6 w-32"></div>
+								<div class="skeleton h-4 w-16"></div>
+							</div>
+							<div class="skeleton h-64 w-full"></div>
+						</div>
+					</div>
+				{/each}
+			</div>
+		{:else if !loading && !error}
 			{#if availableMetrics.length > 0}
 				<div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
 					{#each availableMetrics as metricName}
