@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { selectedTenant } from '$lib/stores/auth';
-	import { apiGet, apiPost } from '$lib/api/api';
+	import { apiGet, apiPost, apiPut, apiDelete } from '$lib/api/api';
 	import { refreshTokens } from '$lib/api/auth';
 	import { onDestroy } from 'svelte';
 	import Modal from '$lib/Modal.svelte';
@@ -51,8 +51,16 @@
 		showCreateTenantModal = true;
 	}
 
-	// Check if current user is owner
+	// Check if current user is owner or admin
 	$: isOwner = $selectedTenant?.role === 'owner';
+	$: isAdmin = $selectedTenant?.role === 'admin' || isOwner;
+
+	// User management state
+	let showEditUserModal = false;
+	let showDeleteUserModal = false;
+	let selectedUser: UserInTenant | null = null;
+	let newRole = '';
+	let deleteConfirmText = '';
 
 	async function loadUsers() {
 		if (!tenantId) return;
@@ -129,13 +137,85 @@
 	function copyToClipboard(text: string) {
 		navigator.clipboard.writeText(text);
 	}
+
+	// User management functions
+	function openEditUserModal(user: UserInTenant) {
+		selectedUser = user;
+		newRole = user.role;
+		showEditUserModal = true;
+	}
+
+	function openDeleteUserModal(user: UserInTenant) {
+		selectedUser = user;
+		deleteConfirmText = '';
+		showDeleteUserModal = true;
+	}
+
+	function closeEditUserModal() {
+		selectedUser = null;
+		newRole = '';
+		showEditUserModal = false;
+	}
+
+	function closeDeleteUserModal() {
+		selectedUser = null;
+		deleteConfirmText = '';
+		showDeleteUserModal = false;
+	}
+
+	async function updateUserRole() {
+		if (!selectedUser || !newRole) return;
+
+		const res = await apiPut(`/api/admin/users/${selectedUser.id}/role`, {
+			role: newRole
+		});
+
+		if (res.success) {
+			await loadUsers();
+			closeEditUserModal();
+		} else {
+			alert('Failed to update user role: ' + res.error);
+		}
+	}
+
+	async function deleteUser() {
+		if (!selectedUser || deleteConfirmText !== 'DELETE') return;
+
+		const res = await apiDelete(`/api/admin/users/${selectedUser.id}`);
+
+		if (res.success) {
+			await loadUsers();
+			closeDeleteUserModal();
+		} else {
+			alert('Failed to delete user: ' + res.error);
+		}
+	}
+
+	// Prevent users from modifying themselves or other owners (only owners can manage owners)
+	function canManageUser(user: UserInTenant): boolean {
+		if (!isAdmin) return false;
+
+		// Get current user info from JWT payload
+		const userPayload = JSON.parse(localStorage.getItem('user_payload') || '{}');
+		const currentUserId = userPayload.sub; // User ID is stored in 'sub' field
+		const currentUserEmail = userPayload.email;
+
+		// Can't manage yourself - check by both ID and email for safety
+		if (currentUserId && user.id === currentUserId) return false;
+		if (currentUserEmail && user.email === currentUserEmail) return false;
+
+		// Only owners can manage other owners
+		if (user.role === 'owner' && !isOwner) return false;
+
+		return true;
+	}
 </script>
 
 <div class="space-y-6">
 	<div class="flex items-center justify-between">
 		<div>
 			<h1 class="text-base-content text-2xl font-bold">{tenantName}</h1>
-			<div class="flex items-center gap-2 mt-1">
+			<div class="mt-1 flex items-center gap-2">
 				<p class="text-base-content/70 text-sm">Manage users and permissions</p>
 				{#if $selectedTenant}
 					<span
@@ -153,13 +233,19 @@
 		{#if isOwner}
 			<button class="btn btn-primary gap-2" on:click={() => (showModal = true)}>
 				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 4v16m8-8H4"
+					/>
 				</svg>
 				Invite User
 			</button>
-		{:else}
+		{:else if !isAdmin}
 			<div class="text-right">
 				<p class="text-base-content/50 text-sm">Only owners can invite users</p>
+				<p class="text-base-content/50 text-xs">Only admins and owners can manage users</p>
 			</div>
 		{/if}
 	</div>
@@ -208,6 +294,9 @@
 								<th>Email</th>
 								<th>Role</th>
 								<th>Joined At</th>
+								{#if isAdmin}
+									<th>Actions</th>
+								{/if}
 							</tr>
 						</thead>
 						<tbody>
@@ -235,6 +324,56 @@
 									<td class="text-base-content/70 text-sm"
 										>{new Date(user.joined_at).toLocaleDateString()}</td
 									>
+									{#if isAdmin}
+										<td>
+											<div class="flex gap-2">
+												{#if canManageUser(user)}
+													<button
+														class="btn btn-ghost btn-xs"
+														on:click={() => openEditUserModal(user)}
+														aria-label="Edit user role"
+														title="Edit user role"
+													>
+														<svg
+															class="h-4 w-4"
+															fill="none"
+															stroke="currentColor"
+															viewBox="0 0 24 24"
+														>
+															<path
+																stroke-linecap="round"
+																stroke-linejoin="round"
+																stroke-width="2"
+																d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+															/>
+														</svg>
+													</button>
+													<button
+														class="btn btn-ghost btn-xs text-error hover:bg-error hover:text-error-content"
+														on:click={() => openDeleteUserModal(user)}
+														aria-label="Remove user from tenant"
+														title="Remove user from tenant"
+													>
+														<svg
+															class="h-4 w-4"
+															fill="none"
+															stroke="currentColor"
+															viewBox="0 0 24 24"
+														>
+															<path
+																stroke-linecap="round"
+																stroke-linejoin="round"
+																stroke-width="2"
+																d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+															/>
+														</svg>
+													</button>
+												{:else}
+													<span class="text-base-content/50 text-xs">No access</span>
+												{/if}
+											</div>
+										</td>
+									{/if}
 								</tr>
 							{/each}
 						</tbody>
@@ -396,4 +535,97 @@
 	</Modal>
 {/if}
 
+<!-- Edit User Role Modal -->
+<Modal bind:visible={showEditUserModal} header="Edit User Role">
+	{#if selectedUser}
+		<div class="space-y-4">
+			<div class="text-base-content">
+				<p><strong>User:</strong> {selectedUser.first_name} {selectedUser.last_name}</p>
+				<p><strong>Email:</strong> {selectedUser.email}</p>
+				<p>
+					<strong>Current Role:</strong>
+					<span class="badge badge-outline badge-sm">{selectedUser.role}</span>
+				</p>
+			</div>
 
+			<div class="form-control w-full">
+				<label class="label" for="new-role">
+					<span class="label-text text-white">New Role</span>
+				</label>
+				<select
+					id="new-role"
+					class="select select-bordered bg-base-200 border-base-300 text-base-content w-full"
+					bind:value={newRole}
+				>
+					<option value="user">User</option>
+					<option value="admin">Admin</option>
+					{#if isOwner}
+						<option value="owner">Owner</option>
+					{/if}
+				</select>
+			</div>
+		</div>
+
+		<div class="modal-action">
+			<button class="btn btn-ghost" on:click={closeEditUserModal}>Cancel</button>
+			<button
+				class="btn btn-primary"
+				on:click={updateUserRole}
+				disabled={!newRole || newRole === selectedUser.role}
+			>
+				Update Role
+			</button>
+		</div>
+	{/if}
+</Modal>
+
+<!-- Delete User Modal -->
+<Modal bind:visible={showDeleteUserModal} header="Remove User from Tenant">
+	{#if selectedUser}
+		<div class="space-y-4">
+			<div class="alert alert-warning">
+				<svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"
+					/>
+				</svg>
+				<span>This action cannot be undone!</span>
+			</div>
+
+			<div class="text-base-content">
+				<p>You are about to remove this user from the tenant:</p>
+				<div class="bg-base-200 mt-2 rounded p-3">
+					<p><strong>Name:</strong> {selectedUser.first_name} {selectedUser.last_name}</p>
+					<p><strong>Email:</strong> {selectedUser.email}</p>
+					<p>
+						<strong>Role:</strong>
+						<span class="badge badge-outline badge-sm">{selectedUser.role}</span>
+					</p>
+				</div>
+			</div>
+
+			<div class="form-control w-full">
+				<label class="label" for="delete-confirm">
+					<span class="label-text text-white">Type "DELETE" to confirm</span>
+				</label>
+				<input
+					id="delete-confirm"
+					class="input input-bordered bg-base-200 border-base-300 text-base-content w-full"
+					bind:value={deleteConfirmText}
+					placeholder="DELETE"
+					type="text"
+				/>
+			</div>
+		</div>
+
+		<div class="modal-action">
+			<button class="btn btn-ghost" on:click={closeDeleteUserModal}>Cancel</button>
+			<button class="btn btn-error" on:click={deleteUser} disabled={deleteConfirmText !== 'DELETE'}>
+				Remove User
+			</button>
+		</div>
+	{/if}
+</Modal>

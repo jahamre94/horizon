@@ -58,6 +58,17 @@ export async function apiPost<T, B = unknown>(
 	});
 }
 
+// PUT wrapper
+export async function apiPut<T, B = unknown>(
+	url: string,
+	body: B
+): Promise<APIResult<T>> {
+	return apiFetch<T>(url, {
+		method: 'PUT',
+		body: JSON.stringify(body)
+	});
+}
+
 // DELETE wrapper
 export async function apiDelete<T>(url: string): Promise<APIResult<T>> {
 	return apiFetch<T>(url, { method: 'DELETE' });
