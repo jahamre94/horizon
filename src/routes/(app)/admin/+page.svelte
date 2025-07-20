@@ -51,6 +51,9 @@
 		showCreateTenantModal = true;
 	}
 
+	// Check if current user is owner
+	$: isOwner = $selectedTenant?.role === 'owner';
+
 	async function loadUsers() {
 		if (!tenantId) return;
 		const res = await apiGet<UserInTenant[]>('/api/tenant/users');
@@ -98,14 +101,15 @@
 		createTenantError = '';
 		const res = await apiPost('/api/tenant', { name: newTenantName });
 		if (res.success) {
-			const newTenantData = res.data;
+			const newTenantData = res.data as { id: string; name: string; slug: string; role?: string };
 			console.log('New tenant created:', newTenantData);
 
 			// Extract only the fields needed for the selectedTenant store
 			const newTenant = {
 				id: newTenantData.id,
 				name: newTenantData.name,
-				slug: newTenantData.slug
+				slug: newTenantData.slug,
+				role: newTenantData.role || 'owner' // Default to owner when creating a tenant
 			};
 
 			selectedTenant.set(newTenant);
@@ -130,15 +134,34 @@
 <div class="space-y-6">
 	<div class="flex items-center justify-between">
 		<div>
-			<h1 class="text-base-content text-2xl font-bold">Users in Tenant: {tenantName}</h1>
-			<p class="text-base-content/70 mt-1 text-sm">Manage tenant users and permissions</p>
+			<h1 class="text-base-content text-2xl font-bold">{tenantName}</h1>
+			<div class="flex items-center gap-2 mt-1">
+				<p class="text-base-content/70 text-sm">Manage users and permissions</p>
+				{#if $selectedTenant}
+					<span
+						class="badge badge-outline badge-sm {$selectedTenant.role === 'owner'
+							? 'badge-warning'
+							: $selectedTenant.role === 'admin'
+								? 'badge-success'
+								: 'badge-neutral'}"
+					>
+						Your role: {$selectedTenant.role}
+					</span>
+				{/if}
+			</div>
 		</div>
-		<button class="btn btn-primary gap-2" on:click={() => (showModal = true)}>
-			<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-			</svg>
-			Invite User
-		</button>
+		{#if isOwner}
+			<button class="btn btn-primary gap-2" on:click={() => (showModal = true)}>
+				<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+				</svg>
+				Invite User
+			</button>
+		{:else}
+			<div class="text-right">
+				<p class="text-base-content/50 text-sm">Only owners can invite users</p>
+			</div>
+		{/if}
 	</div>
 
 	{#if error}
@@ -158,12 +181,20 @@
 			<div class="card-body text-center">
 				<div class="mb-4 text-6xl">👥</div>
 				<h2 class="card-title justify-center">No users found</h2>
-				<p class="text-base-content/70">Get started by inviting your first user</p>
-				<div class="card-actions mt-4 justify-center">
-					<button class="btn btn-primary" on:click={() => (showModal = true)}>
-						Invite First User
-					</button>
-				</div>
+				<p class="text-base-content/70">
+					{#if isOwner}
+						Get started by inviting your first user
+					{:else}
+						Contact your organization owner to invite users
+					{/if}
+				</p>
+				{#if isOwner}
+					<div class="card-actions mt-4 justify-center">
+						<button class="btn btn-primary" on:click={() => (showModal = true)}>
+							Invite First User
+						</button>
+					</div>
+				{/if}
 			</div>
 		</div>
 	{:else}
@@ -192,9 +223,11 @@
 									<td>{user.email}</td>
 									<td>
 										<span
-											class="badge badge-outline badge-sm {user.role === 'admin'
-												? 'badge-success'
-												: 'badge-neutral'}"
+											class="badge badge-outline badge-sm {user.role === 'owner'
+												? 'badge-warning'
+												: user.role === 'admin'
+													? 'badge-success'
+													: 'badge-neutral'}"
 										>
 											{user.role}
 										</span>
@@ -229,11 +262,12 @@
 
 					{#if inviteResponse.temp_password}
 						<div class="form-control w-full">
-							<label class="label">
+							<label class="label" for="temp-password">
 								<span class="label-text text-white">Temporary Password</span>
 							</label>
 							<div class="flex gap-2">
 								<input
+									id="temp-password"
 									class="input input-bordered bg-base-200 border-base-300 text-base-content flex-1"
 									value={inviteResponse.temp_password}
 									readonly
@@ -241,14 +275,14 @@
 								/>
 								<button
 									class="btn btn-primary"
-									on:click={() => copyToClipboard(inviteResponse.temp_password)}
+									on:click={() => copyToClipboard(inviteResponse?.temp_password || '')}
 								>
 									Copy
 								</button>
 							</div>
-							<label class="label">
+							<div class="label">
 								<span class="label-text-alt text-white/70">Share this password with the user</span>
-							</label>
+							</div>
 						</div>
 					{/if}
 				{:else}
@@ -321,6 +355,7 @@
 					>
 						<option value="user">User</option>
 						<option value="admin">Admin</option>
+						<option value="owner">Owner</option>
 					</select>
 				</div>
 			</div>
@@ -340,7 +375,7 @@
 </div>
 
 {#if browser && !$selectedTenant}
-	<Modal bind:visible={showCreateTenantModal} header="Create Tenant" open>
+	<Modal bind:visible={showCreateTenantModal} header="Create Tenant">
 		<div class="space-y-4">
 			<input
 				bind:value={newTenantName}
@@ -360,3 +395,5 @@
 		</div>
 	</Modal>
 {/if}
+
+
