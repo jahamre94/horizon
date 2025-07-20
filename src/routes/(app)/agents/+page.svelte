@@ -24,16 +24,13 @@
 	let selectedType = 'linux-amd64';
 	const availableTypes = [
 		{ value: 'linux-amd64', label: 'Linux (x86_64)' },
-		{ value: 'linux-arm64', label: 'Linux ARM64 (Raspberry Pi, Ubuntu Gateway, etc.)' },
-		{ value: 'darwin-amd64', label: 'macOS (Intel)' },
-		{ value: 'darwin-arm64', label: 'macOS (Apple Silicon)' },
-		{ value: 'windows-amd64', label: 'Windows (x86_64)' },
-		{ value: 'windows-arm64', label: 'Windows ARM64' }
+		{ value: 'linux-arm64', label: 'Linux ARM64 (Raspberry Pi, Unifi Gateway, etc.)' }
 	];
 
 	let tags: { key: string; value: string }[] = [{ key: '', value: '' }];
 	let showToast = false;
 	let toastMessage = '';
+	let copiedStates: Record<string, boolean> = {};
 
 	// Get server URL from browser location
 	if (browser) {
@@ -73,6 +70,7 @@
 		expiresAt = null;
 		tags = [{ key: '', value: '' }];
 		selectedType = 'linux-amd64';
+		copiedStates = {};
 		showAddAgentModal = false;
 	}
 
@@ -84,10 +82,7 @@
 		const typeMap: Record<string, string> = {
 			'linux-amd64': 'observer',
 			'linux-arm64': 'observer',
-			'darwin-amd64': 'observer',
-			'darwin-arm64': 'observer',
-			'windows-amd64': 'observer.exe',
-			'windows-arm64': 'observer.exe'
+			'darwin-arm64': 'observer'
 		};
 		return typeMap[selectedType] || 'observer';
 	}
@@ -113,13 +108,15 @@
 		}
 	}
 
-	function copyToClipboard(text: string) {
+	function copyToClipboard(text: string, buttonId: string) {
 		if (browser) {
 			navigator.clipboard.writeText(text);
+			copiedStates[buttonId] = true;
 			showToast = true;
 			toastMessage = 'Command copied to clipboard!';
 			setTimeout(() => {
 				showToast = false;
+				copiedStates[buttonId] = false;
 			}, 2000);
 		}
 	}
@@ -163,10 +160,33 @@ curl -LO {getDownloadUrl()}</code
 						></pre>
 					<button
 						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
-						on:click={() => copyToClipboard(`curl -LO ${getDownloadUrl()}`)}
+						on:click={() => copyToClipboard(`curl -LO ${getDownloadUrl()}`, 'download')}
 						title="Copy to clipboard"
 					>
-						📋
+						{#if copiedStates['download']}
+							<svg
+								class="text-success h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"
+								/>
+							</svg>
+						{:else}
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+								/>
+							</svg>
+						{/if}
 					</button>
 				</div>
 
@@ -177,10 +197,33 @@ curl -LO {getDownloadUrl()}</code
 						></pre>
 					<button
 						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
-						on:click={() => copyToClipboard(yamlEchoCommand())}
+						on:click={() => copyToClipboard(yamlEchoCommand(), 'config')}
 						title="Copy to clipboard"
 					>
-						📋
+						{#if copiedStates['config']}
+							<svg
+								class="text-success h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"
+								/>
+							</svg>
+						{:else}
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+								/>
+							</svg>
+						{/if}
 					</button>
 				</div>
 
@@ -193,11 +236,35 @@ chmod +x {getExecutableFilename()} && ./{getExecutableFilename()} --config=obser
 						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
 						on:click={() =>
 							copyToClipboard(
-								`chmod +x ${getExecutableFilename()} && ./${getExecutableFilename()} --config=observer.yaml`
+								`chmod +x ${getExecutableFilename()} && ./${getExecutableFilename()} --config=observer.yaml`,
+								'execute'
 							)}
 						title="Copy to clipboard"
 					>
-						📋
+						{#if copiedStates['execute']}
+							<svg
+								class="text-success h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"
+								/>
+							</svg>
+						{:else}
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+								/>
+							</svg>
+						{/if}
 					</button>
 				</div>
 
@@ -208,10 +275,33 @@ sudo ./{getExecutableFilename()} install</code
 						></pre>
 					<button
 						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
-						on:click={() => copyToClipboard(`sudo ./${getExecutableFilename()} install`)}
+						on:click={() => copyToClipboard(`sudo ./${getExecutableFilename()} install`, 'install')}
 						title="Copy to clipboard"
 					>
-						📋
+						{#if copiedStates['install']}
+							<svg
+								class="text-success h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"
+								/>
+							</svg>
+						{:else}
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+								/>
+							</svg>
+						{/if}
 					</button>
 				</div>
 
@@ -222,10 +312,33 @@ journalctl -u cosmoswatcher-observer -f</code
 						></pre>
 					<button
 						class="btn btn-ghost btn-sm btn-square absolute top-2 right-2"
-						on:click={() => copyToClipboard('journalctl -u cosmoswatcher-observer -f')}
+						on:click={() => copyToClipboard('journalctl -u cosmoswatcher-observer -f', 'logs')}
 						title="Copy to clipboard"
 					>
-						📋
+						{#if copiedStates['logs']}
+							<svg
+								class="text-success h-4 w-4"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 13l4 4L19 7"
+								/>
+							</svg>
+						{:else}
+							<svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+								/>
+							</svg>
+						{/if}
 					</button>
 				</div>
 			</div>
