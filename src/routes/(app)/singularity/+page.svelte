@@ -11,11 +11,32 @@
 		user_count: number;
 	};
 
+	type User = {
+		id: string;
+		email: string;
+		role: string;
+		first_name: string;
+		last_name: string;
+		joined_at: string;
+	};
+
+	type UsersResponse = {
+		users: User[];
+		total_count: number;
+		page: number;
+		limit: number;
+		total_pages: number;
+	};
+
 	let tenants: Tenant[] = [];
 	let error = '';
 	let showModal = false;
+	let showUsersModal = false;
 	let newTenantName = '';
 	let newTenantSlug = '';
+	let selectedTenant: Tenant | null = null;
+	let tenantUsers: User[] = [];
+	let loadingUsers = false;
 
 	async function loadTenants() {
 		const res = await apiGet<Tenant[]>('/singularity/api/tenants');
@@ -41,6 +62,21 @@
 		} else {
 			alert('Failed to create tenant: ' + res.error);
 		}
+	}
+
+	async function loadTenantUsers(tenant: Tenant) {
+		selectedTenant = tenant;
+		showUsersModal = true;
+		loadingUsers = true;
+		tenantUsers = [];
+
+		const res = await apiGet<UsersResponse>(`/singularity/api/tenants/${tenant.id}/users`);
+		if (res.success) {
+			tenantUsers = res.data.users;
+		} else {
+			error = res.error;
+		}
+		loadingUsers = false;
 	}
 
 	loadTenants();
@@ -101,7 +137,7 @@
 						</thead>
 						<tbody>
 							{#each tenants as t}
-								<tr>
+								<tr class="hover:bg-base-200 cursor-pointer" on:click={() => loadTenantUsers(t)}>
 									<td class="font-medium">{t.name}</td>
 									<td><code class="bg-base-200 rounded px-2 py-1 text-sm">{t.slug}</code></td>
 									<td>
@@ -154,9 +190,9 @@
 				placeholder="auto-generated-from-name"
 				type="text"
 			/>
-			<label class="label">
+			<div class="label">
 				<span class="label-text-alt text-white/70">Leave empty to auto-generate from name</span>
-			</label>
+			</div>
 		</div>
 	</div>
 
@@ -165,5 +201,64 @@
 		<button class="btn btn-primary" on:click={createTenant} disabled={!newTenantName.trim()}>
 			Create Tenant
 		</button>
+	</div>
+</Modal>
+
+<Modal
+	bind:visible={showUsersModal}
+	header={selectedTenant ? `Users in ${selectedTenant.name}` : 'Tenant Users'}
+>
+	<div class="space-y-4">
+		{#if loadingUsers}
+			<div class="flex items-center justify-center py-8">
+				<span class="loading loading-spinner loading-lg"></span>
+			</div>
+		{:else if tenantUsers.length === 0}
+			<div class="py-8 text-center">
+				<div class="mb-4 text-4xl">👥</div>
+				<p class="text-base-content/70">No users found in this tenant</p>
+			</div>
+		{:else}
+			<div class="overflow-x-auto">
+				<table class="table-zebra table w-full">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Email</th>
+							<th>Role</th>
+							<th>Status</th>
+							<th>Joined</th>
+						</tr>
+					</thead>
+					<tbody>
+						{#each tenantUsers as user}
+							<tr>
+								<td class="font-medium">
+									{user.first_name || user.last_name
+										? `${user.first_name} ${user.last_name}`.trim()
+										: 'No name provided'}
+								</td>
+								<td>{user.email}</td>
+								<td>
+									<span class="badge badge-outline capitalize">
+										{user.role}
+									</span>
+								</td>
+								<td>
+									<span class="badge badge-sm badge-success"> Active </span>
+								</td>
+								<td class="text-base-content/70 text-sm">
+									{new Date(user.joined_at).toLocaleString()}
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+			</div>
+		{/if}
+	</div>
+
+	<div class="modal-action">
+		<button class="btn btn-ghost" on:click={() => (showUsersModal = false)}>Close</button>
 	</div>
 </Modal>
