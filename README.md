@@ -1,38 +1,79 @@
-# sv
+## CosmosWatcher System Overview
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+CosmosWatcher is a modular monitoring platform, composed of three main components:
 
-## Creating a project
+- [Singularity](https://github.com/jahamre94/singularity)
+- [**Horizon**](https://github.com/jahamre94/horizon) <span style="color: #2ecc40; font-weight: bold;">(current component)</span>
+- [Observer](https://github.com/jahamre94/observer)
 
-If you're seeing this, you've probably already done this step. Congrats!
+Learn more at [cosmoswatcher.com](https://cosmoswatcher.com/).
+
+---
+
+# Horizon
+
+> **Horizon** is the CosmosWatcher web frontend for visualizing system metrics, observer status, and orchestrating actions across your infrastructure. Built with SvelteKit and Vite.
+
+## Features
+
+- Multi-tenant dashboard for all registered Observers
+- Real-time and historical metrics: CPU, memory, disk, network, temperature
+- Per-observer drilldown with time range selection
+- Grouping and sorting by tenant, observer, and metric labels
+- Secure authentication and role-based access
+- Responsive, modern UI
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18+ recommended)
+- npm, pnpm, or yarn
+
+### Install dependencies
 
 ```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
+npm install
 ```
 
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+### Development server
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
 npm run dev -- --open
 ```
 
-## Building
-
-To create a production version of your app:
+### Build for production
 
 ```bash
 npm run build
 ```
 
-You can preview the production build with `npm run preview`.
+### Preview production build
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+```bash
+npm run preview
+```
+
+> To deploy Horizon, you may need to install a [SvelteKit adapter](https://kit.svelte.dev/docs/adapters) for your target environment (e.g., Node, Vercel, Netlify).
+
+## Project Structure
+
+- `src/routes/` — SvelteKit routes and pages
+- `src/lib/` — UI components, charts, API clients, stores
+- `static/` — Static assets (icons, images)
+- `build/` — Production build output
+- `package.json` — Project metadata and scripts
+
+## License
+
+This project is licensed under the Business Source License 1.1 (BSL 1.1). See the LICENSE file for details. After 2029-01-01, the license will convert to Apache License 2.0.
+
+## Contributing
+
+Issues and pull requests are welcome! For major changes, please open an issue first to discuss what you would like to change.
+
+## Links
+
+- [CosmosWatcher System](https://cosmoswatcher.com/)
+- [Singularity Backend](https://github.com/jahamre94/singularity)
+- [Observer Agent](https://github.com/jahamre94/observer)
