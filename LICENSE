@@ -1,0 +1,66 @@
+Use of this software is governed by the Business Source License 1.1 included below.
+
+As of 2029-01-01, this software will be made available under the Apache License, Version 2.0.
+See the LICENSE file for details.
+
+---
+
+Business Source License 1.1
+
+Licensor: Jan Steffen Hamre
+Product Name: CosmosWatcher Horizon
+Licensed Work: The entire contents of this repository
+Change Date: 2029-01-01
+Change License: Apache License, Version 2.0
+
+Additional Terms:
+- ✅ Personal and internal (non-commercial) use is permitted.
+- ❌ You may not offer the software as a public or commercial service (e.g., SaaS) without permission.
+- ❌ You may not include the software in commercial products without permission.
+
+Full License Text:
+
+Business Source License 1.1
+
+Parameters
+
+"Licensor": Jan Steffen Hamre
+"Product": CosmosWatcher Horizon
+"Licensed Work": The entire contents of this repository
+"Additional Use Grant": Personal and internal (non-commercial) use
+"Change Date": 2029-01-01
+"Change License": Apache License, Version 2.0
+
+1. License Grant.
+
+The Licensor hereby grants you the right to copy, modify, create derivative works, redistribute, and use the Licensed Work, subject to the limitations and conditions set forth below.
+
+2. Use Limitation.
+
+The Licensed Work may only be used for personal and internal (non-commercial) purposes. You may not offer the Licensed Work, or any derivative works thereof, as a public or commercial service (including as a SaaS offering), nor may you include it in commercial products, without the Licensor's prior written permission.
+
+3. Change Date.
+
+The Change Date is 2029-01-01. On the Change Date, the terms of the Change License will apply to the Licensed Work. The Change License is the Apache License, Version 2.0.
+
+4. Notices.
+
+All copies of the Licensed Work must include a copy of this License.
+
+5. Disclaimer.
+
+THE LICENSED WORK IS PROVIDED "AS IS". LICENSOR DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
+
+6. Limitation of Liability.
+
+IN NO EVENT WILL LICENSOR BE LIABLE FOR ANY DAMAGES, INCLUDING WITHOUT LIMITATION DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, ARISING OUT OF THE USE OR INABILITY TO USE THE LICENSED WORK.
+
+7. Governing Law.
+
+This License is governed by and construed in accordance with the laws of the jurisdiction in which the Licensor is located, without regard to its conflict of law principles.
+
+For the full text of the Business Source License 1.1, see https://mariadb.com/bsl11/.
+
+---
+
+As of the Change Date, the Licensed Work will be made available under the Apache License, Version 2.0, which is available at https://www.apache.org/licenses/LICENSE-2.0.

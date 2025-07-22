@@ -790,22 +790,22 @@
 										<span class="text-xs font-medium">Users</span>
 									</div>
 									<div class="flex flex-wrap gap-2 text-xs">
-										{#if userMetrics.total !== undefined}
-											<span class="flex items-center gap-1">
-												<span class="text-base-content/80">👥</span>
-												<span class="text-base-content/80">{userMetrics.total} Total</span>
-											</span>
-										{/if}
 										{#if userMetrics.loginable !== undefined}
 											<span class="flex items-center gap-1">
-												<span class="text-warning">🔓</span>
+												<span class="text-warning">�</span>
 												<span class="text-warning">{userMetrics.loginable} Interactive</span>
 											</span>
 										{/if}
 										{#if userMetrics.nonLoginable !== undefined}
 											<span class="flex items-center gap-1">
-												<span class="text-success">🔒</span>
+												<span class="text-success">�</span>
 												<span class="text-success">{userMetrics.nonLoginable} System</span>
+											</span>
+										{/if}
+										{#if userMetrics.total !== undefined}
+											<span class="flex items-center gap-1">
+												<span class="text-base-content/80">�</span>
+												<span class="text-base-content/80">{userMetrics.total} Total</span>
 											</span>
 										{/if}
 									</div>
